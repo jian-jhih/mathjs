@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>兩步驟計算視覺化教具 - 設計說明與教案</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #0ea5e9;
+            --bg-color: #f8fafc;
+            --text-main: #334155;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight: #fef08a;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        h2 {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h3 {
+            color: var(--secondary);
+            margin-top: 25px;
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .problem-card {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid var(--secondary);
+            transition: transform 0.2s;
+        }
+
+        .problem-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .problem-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .math-formula {
+            display: inline-block;
+            background: #1e293b;
+            color: #10b981;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .strategy-box {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            align-items: flex-start;
+        }
+
+        .strategy-icon {
+            font-size: 2.5rem;
+            background: #e0e7ff;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .strategy-content h4 {
+            margin: 0 0 10px 0;
+            font-size: 1.2rem;
+            color: #334155;
+        }
+
+        .strategy-content p {
+            margin: 0 0 10px 0;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #fef3c7;
+            color: #b45309;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .highlight-text {
+            background-repeat: no-repeat;
+            background-size: 100% 40%;
+            background-position: 0 80%;
+            font-weight: bold;
+        }
+    </style>
+<style id="math-flat-theme">
+:root{--paper:#F7F3E8;--ink:#24303A;--action:#2F5D7E;--value:#C58A2B;--correct:#557A5A;--error:#B7523E;--rule:#C9C1B2}
+body{background:var(--paper)!important;color:var(--ink)!important}button,input,select,textarea{border:2px solid var(--rule)!important}button:hover{background:var(--action)!important;color:#fff!important}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--value)!important;outline-offset:2px!important}
+</style></head>
+<body>
+
+    <header>
+        <h1>兩步驟計算視覺化教具</h1>
+        <p>乘與加減的魔法 —— 幫助小學生看見括號的意義</p>
+    </header>
+
+    <main>
+        <section id="introduction">
+            <h2>💡 一、開發理念與核心價值</h2>
+            <p>在國小數學教學中，「兩步驟計算」（特別是含有括號的乘法與加減混合運算）是學生容易卡關的階段。學生經常會忘記「先算括號」或無法理解分配律的含義。本教具的設計初衷是：<span class="highlight-text">將抽象的算式轉化為具體的視覺操作</span>。</p>
+            <ul>
+                <li><strong>圖案化代替數字：</strong> 使用蘋果、口香糖、色紙等學生熟悉的圖示（Emojis），降低數字帶來的壓力。</li>
+                <li><strong>視覺化括號 `( )`：</strong> 創造「透明箱子/群組」的概念，將需要優先處理的運算侷限在一個框框內發生，讓「先算括號」變成直觀的物理動作。</li>
+                <li><strong>動畫詮釋乘法：</strong> 透過「平滑克隆（Clone）」動畫，將乘法展示為「整個群組的重複複製」，有助於理解為何是 `(A+B)` 整個被乘上倍數。</li>
+            </ul>
+        </section>
+
+        <section id="problem-list">
+            <h2>📚 二、七大經典情境題庫</h2>
+            <p>我們蒐集並分類了七種常見的兩步驟應用題，涵蓋了「和的乘法」、「差的乘法」以及「組數增減」等多種變化：</p>
+            
+            <div class="problem-grid">
+                <div class="problem-card">
+                    <div class="problem-title">一、綜合果汁組合 (和的乘法)</div>
+                    <p>一箱綜合果汁裡有4瓶蘋果汁與2瓶柳橙汁，叔叔買了5箱，共有幾瓶果汁？</p>
+                    <div class="math-formula">(4 + 2) × 5 = 30</div>
+                </div>
+
+                <div class="problem-card">
+                    <div class="problem-title">二、娃娃採購比較 (組數增加)</div>
+                    <p>一組娃娃有3個，阿姨買了6組，媽媽比阿姨多買了4組，媽媽買了幾個娃娃？</p>
+                    <div class="math-formula">3 × (6 + 4) = 30</div>
+                </div>
+
+                <div class="problem-card">
+                    <div class="problem-title">三、特價果汁付款 (差的乘法)</div>
+                    <p>一瓶果汁賣19元，今日特價每瓶便宜8元，哥哥買了3瓶，共要付多少錢？</p>
+                    <div class="math-formula">(19 - 8) × 3 = 33</div>
+                </div>
+
+                <div class="problem-card">
+                    <div class="problem-title">四、色紙數量相差 (差的乘法)</div>
+                    <p>一包大色紙有20張，一包小色紙有10張，大色紙和小色紙都有7包，兩種色紙相差多少張？</p>
+                    <div class="math-formula">(20 - 10) × 7 = 70</div>
+                </div>
+
+                <div class="problem-card">
+                    <div class="problem-title">五、球袋顏色差異 (差的乘法)</div>
+                    <p>每袋球都有2個紅球和5個黃球，如果有6袋球，黃球比紅球多幾個？</p>
+                    <div class="math-formula">(5 - 2) × 6 = 18</div>
+                </div>
+
+                <div class="problem-card">
+                    <div class="problem-title">六、口香糖片數 (組數減少)</div>
+                    <p>一條口香糖有9片，小風買了9條，小雅比小風少買了3條，小雅共有幾片口香糖？</p>
+                    <div class="math-formula">9 × (9 - 3) = 54</div>
+                </div>
+
+                <div class="problem-card">
+                    <div class="problem-title">七、兄弟存錢大作戰 (和的乘法)</div>
+                    <p>哥哥每天存7元，弟弟每天存2元，7天後，兄弟兩人共存了幾元？</p>
+                    <div class="math-formula">(7 + 2) × 7 = 63</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="visual-strategies">
+            <h2>🎨 三、四種核心視覺策略解析</h2>
+            <p>為了精準呈現上述題型的不同邏輯，程式內部實作了四種強大的動態視覺模組：</p>
+
+            <div class="strategy-box">
+                <div class="strategy-icon">📦</div>
+                <div class="strategy-content">
+                    <h4>1. 合併/同組加法 (The Combined Group)</h4>
+                    <p><span class="badge">適用</span> 果汁組合、兄弟存錢、自訂題目</p>
+                    <p><strong>視覺設計：</strong> 將兩種物品放在同一個透明容器中。點擊「步驟一」時，高亮整個容器，提示先算出總量。點擊「步驟二」時，該容器會瞬間複製多份。</p>
+                    <p><strong>教學意義：</strong> 清楚展示了 $A + B$ 必須先打包成一個整體，然後才能乘以 $C$。</p>
+                </div>
+            </div>
+
+            <div class="strategy-box">
+                <div class="strategy-icon">⚖️</div>
+                <div class="strategy-content">
+                    <h4>2. 重疊對比法 (Overlay Compare)</h4>
+                    <p><span class="badge">適用</span> 色紙相差、球袋差異、特價扣除</p>
+                    <p><strong>視覺設計：</strong> 將兩種需要比較的圖案上下對齊排列。點擊「步驟一」時，會將能夠一對一抵銷的部分變暗，特別<strong>發光高亮</strong>多出來的那一部分（即相差的值）。點擊「步驟二」時，只會將這個「相差的部分」複製出去。</p>
+                    <p><strong>教學意義：</strong> 讓學生視覺化「相差」的概念，理解為什麼要先做減法 $(A - B)$，以及乘法是把「每一次的差距」給放大。</p>
+                </div>
+            </div>
+
+            <div class="strategy-box">
+                <div class="strategy-icon">👻</div>
+                <div class="strategy-content">
+                    <h4>3. 虛影剔除法 (Ghosting Removal)</h4>
+                    <p><span class="badge">適用</span> 口香糖少買 (組數變少)</p>
+                    <p><strong>視覺設計：</strong> 畫面上先完整排滿原本數量的群組。點擊「步驟一」時，要被扣除的組數會變成半透明的虛影，然後縮小消失，只留下實際的組數。點擊「步驟二」時，剩下的組數會高亮顯示內部數量。</p>
+                    <p><strong>教學意義：</strong> 具象化「拿走、少掉」的組數動作，幫助理解 $A \times (B - C)$ 中，後面括號是在處理「群組數量的減少」。</p>
+                </div>
+            </div>
+
+            <div class="strategy-box">
+                <div class="strategy-icon">➕</div>
+                <div class="strategy-content">
+                    <h4>4. 組數擴充法 (Group Addition)</h4>
+                    <p><span class="badge">適用</span> 娃娃多買 (組數變多)</p>
+                    <p><strong>視覺設計：</strong> 先呈現基礎的群組數量。點擊「步驟一」時，畫面會動態新增額外的群組，並以不同顏色高亮。點擊「步驟二」時，整合所有群組計算總量。</p>
+                    <p><strong>教學意義：</strong> 呈現 $A \times (B + C)$ 的情境，說明為什麼要把原本的組數和新增加的組數加起來，再來算總量。</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="interactive-features">
+            <h2>✨ 四、互動設計與程式功能亮點</h2>
+            <ul>
+                <li><strong>強迫分步思考：</strong> 程式刻意將計算分為「步驟一」與「步驟二」按鈕，且必須依序點擊。這可以防堵學生「看到數字就直接乘」的壞習慣，引導他們先處理括號內的問題。</li>
+                <li><strong>數學面板即時同步：</strong> 畫面的右下方有一個動態算式區。當畫面上在執行步驟一時，算式中括號的部分 <code>(4 + 2)</code> 會亮起並算出結果；執行步驟二時，乘法符號與乘數才會亮起。這能完美橋接「具象畫面」與「抽象符號」。</li>
+                <li><strong>高自由度「自訂題目」引擎：</strong> 考慮到教學的彈性，程式內建了隱藏的自訂生成器。老師可以任意新增多種物品（例如：一個包包裡有 3 顆蘋果 🍎、2 根香蕉 🍌、1 瓶水 💧），並設定包包的總數。程式的渲染引擎能自動適應任意數量的物品種類並完美繪製出來。</li>
+                <li><strong>紙張教室風格 (毛玻璃) 介面設計：</strong> 為了吸引小學生的注意力，採用了現代化的毛玻璃透視效果與鮮豔柔和的漸層背景，讓「學數學」的過程更像是在玩一款精緻的網頁遊戲。</li>
+            </ul>
+        </section>
+    </main>
+
+</body>
+</html>
+
+

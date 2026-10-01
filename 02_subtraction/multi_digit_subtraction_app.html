@@ -1,0 +1,1819 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>多位數減法：借位、規律與推理</title>
+  <style>
+    :root{--paper:#F7F3E8;--card:#FFFDF7;--ink:#24303A;--muted:#5E6A70;--action:#2F5D7E;--value:#C58A2B;--correct:#557A5A;--error:#B7523E;--rule:#C9C1B2;--one:#D9E8D1;--ten:#D5E4EE;--hundred:#F1D7B1;--thousand:#E8C8A8}
+    *{box-sizing:border-box} body{margin:0;background:var(--paper);color:var(--ink);font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;line-height:1.55}
+    header{padding:20px clamp(16px,4vw,48px) 12px;border-bottom:1px solid var(--rule)} h1{margin:0;font-size:clamp(24px,4vw,36px)} h2{margin:0 0 8px;font-size:22px} h3{margin:14px 0 6px} p{margin:6px 0}.intro{color:var(--muted)}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;padding:14px clamp(16px,4vw,48px);background:#EFE8D9}.tab,.button{border:2px solid var(--rule);background:var(--card);color:var(--ink);border-radius:7px;padding:9px 14px;font-size:15px;cursor:pointer}.tab[aria-selected="true"],.button.primary{background:var(--action);color:white;border-color:var(--action)}.button:disabled{opacity:.5;cursor:not-allowed}.tab:focus-visible,.button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--value);outline-offset:2px}
+    main{max-width:1200px;margin:auto;padding:18px clamp(16px,4vw,48px) 40px}.panel{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:18px;margin-bottom:18px}.toolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.field{display:flex;flex-direction:column;gap:3px}input,select{font:inherit;border:2px solid var(--rule);border-radius:6px;background:white;padding:8px;min-width:78px;color:var(--ink)}
+    .message{padding:11px 13px;background:#EFE8D9;border-left:5px solid var(--action);margin:14px 0;font-weight:600}.message.error{border-left-color:var(--error)}.message.success{border-left-color:var(--correct)}
+    .place-board{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:10px;margin:18px 0}.place-column{border:2px solid var(--rule);border-radius:8px;overflow:hidden;min-height:230px}.place-head{padding:8px;background:#EFE8D9;text-align:center;font-weight:700}.place-head small{display:block;color:var(--muted);font-weight:400}.block-area{padding:10px;min-height:175px;display:flex;align-content:flex-start;flex-wrap:wrap;gap:5px}.block{display:inline-flex;align-items:center;justify-content:center;border:1px solid #777;color:var(--ink);font-size:12px;font-weight:700}.block.one{width:27px;height:27px;background:var(--one)}.block.ten{width:27px;height:80px;background:var(--ten)}.block.hundred{width:68px;height:68px;background:var(--hundred)}.block.thousand{width:76px;height:76px;background:var(--thousand)}.count{padding:5px 10px;border-top:1px solid var(--rule);color:var(--muted);font-size:14px}.limited{color:var(--muted);font-size:13px;margin-top:4px}
+    .step-row{display:flex;gap:8px;flex-wrap:wrap}.equation{font-size:clamp(25px,5vw,42px);font-weight:700;letter-spacing:2px;text-align:center;margin:14px 0}.equation .minus{border-bottom:3px solid var(--ink);display:inline-block;padding:0 12px 4px}.small-note{color:var(--muted);font-size:14px}
+    .pattern-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.pattern-table{width:100%;border-collapse:collapse;margin-top:10px}.pattern-table th,.pattern-table td{border:1px solid var(--rule);padding:7px;text-align:center}.pattern-table th{background:#EFE8D9}.pattern-table tbody tr{cursor:pointer}.pattern-table tbody tr:focus-visible{outline:3px solid var(--action);outline-offset:-2px}.pattern-table tr.active-row{background:#FFF3D6;font-weight:bold;outline:2px solid var(--value)}.pattern-blocks{display:grid;gap:10px;padding:12px;border:1px solid var(--rule);background:#FBF8EF;transition:all 0.3s ease}.block-operation{border:1px solid var(--rule);border-radius:7px;padding:10px;background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,0.05);animation:fadeIn 0.25s ease}.block-operation h4{margin:0 0 5px;font-size:16px;color:var(--action)}.block-operation p{margin:4px 0;color:var(--muted);font-size:14px}.block-set{display:flex;align-items:flex-end;flex-wrap:wrap;gap:5px;min-height:42px}.pattern-block{display:inline-flex;align-items:center;justify-content:center;border:1px solid #777;color:var(--ink);font-size:12px;font-weight:700}.pattern-block.one{width:28px;height:28px;background:var(--one)}.pattern-block.ten{width:80px;height:60px;padding:3px;display:block;background:var(--ten)}.ten-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:2px}.ten-grid i{display:flex;align-items:center;justify-content:center;min-height:18px;background:#F4FAF0;border:1px solid #728A75;font-size:10px;font-style:normal;font-weight:700}.ten-label{display:block;text-align:center;font-size:11px;line-height:13px}.block-action{font-weight:700;color:var(--action)}.block-take{border-color:var(--value);background:#FFF8E8}.block-remaining{border-color:var(--correct);background:#F2F7EE}.block-note{margin:0;color:var(--muted);font-size:13px}.number-line{position:relative;height:80px;border-bottom:3px solid var(--action);margin:25px 12px 8px}.tick{position:absolute;bottom:-9px;width:2px;height:18px;background:var(--action)}.tick span{position:absolute;top:20px;transform:translateX(-50%);font-size:12px}.move-arrow{position:absolute;bottom:12px;height:3px;background:var(--value);transition:all 0.3s ease}.move-arrow:after{content:"";position:absolute;left:-1px;top:-5px;border-right:9px solid var(--value);border-top:6px solid transparent;border-bottom:6px solid transparent}@keyframes fadeIn{from{opacity:0.4;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+    .reasoning-list{display:grid;gap:12px}.reason-card{border:1px solid var(--rule);border-radius:8px;padding:18px;background:#FBF8EF;display:flex;flex-direction:column;align-items:center}.reason-card-head{width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;color:var(--muted);font-size:15px}.vertical-calc-wrap{display:inline-flex;flex-direction:column;align-items:flex-end;padding:12px 24px;background:var(--card);border:2px solid var(--rule);border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.04);margin:8px 0}.vertical-row{display:flex;align-items:center;justify-content:flex-end;height:44px;font-size:30px;font-weight:700;letter-spacing:6px;font-family:"Courier New",monospace}.vertical-row .op{width:28px;text-align:center;margin-right:8px;font-weight:700;color:var(--ink)}.vertical-row .digits{display:flex;align-items:center;justify-content:flex-end;gap:2px}.vertical-cell{width:36px;height:38px;display:inline-flex;align-items:center;justify-content:center;text-align:center}.vertical-cell.num-cell{color:var(--ink)}.vertical-cell.box-cell input{width:36px;height:38px;text-align:center;font-size:26px;font-weight:700;border:2px solid var(--action);border-radius:6px;background:#FFFDF7;color:var(--action);padding:0;outline:none;font-family:inherit}.vertical-cell.box-cell input:focus{border-color:var(--value);background:#FFF8E8;box-shadow:0 0 0 3px rgba(197,138,43,0.25)}.vertical-line{width:100%;height:3px;background:var(--ink);margin:4px 0 6px}.feedback{min-height:26px;margin-top:10px;text-align:center;font-size:16px}.correct{color:var(--correct);font-weight:700}.incorrect{color:var(--error);font-weight:700}
+    /* 直式每一位使用固定欄寬，覆寫全域 input 的最小寬度，避免遮住相鄰數字。 */
+    .vertical-calc-wrap{max-width:100%;overflow-x:auto}
+    .vertical-row{letter-spacing:0;width:max-content}
+    .vertical-cell{width:32px;flex:0 0 32px}
+    .vertical-cell.box-cell input,.vertical-cell.box-cell input.answer-box{box-sizing:border-box;min-width:0;width:32px;max-width:32px}
+    
+    /* 依據提案改善的自動展演展示區 */
+    .auto-demo-container{width:100%;margin-top:16px;padding:16px;border:2px solid var(--action);border-radius:10px;background:#FBF8EF}
+    .auto-demo-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:12px}
+    .auto-demo-header h3{margin:0;font-size:18px;color:var(--action)}
+    .auto-demo-controls{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+    .auto-demo-controls .button{padding:6px 10px;font-size:13px}
+    .auto-explain-card{background:var(--card);border-left:5px solid var(--action);padding:10px 14px;border-radius:4px;margin-bottom:14px;font-weight:600;font-size:15px;line-height:1.5}
+    .auto-explain-card.highlight{border-left-color:var(--value);background:#FFF9EE}
+    .auto-stage-grid{display:grid;grid-template-columns:1.8fr 1fr;gap:14px;align-items:start}
+    @media(max-width:860px){.auto-stage-grid{grid-template-columns:1fr}}
+
+    /* 展演：位值積木區 */
+    .auto-place-board{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:8px}
+    .auto-col{border:1px solid var(--rule);border-radius:6px;min-height:160px;display:flex;flex-direction:column;overflow:hidden;background:#FCFAF4}
+    .auto-col.col-focus{border:2px solid var(--action);box-shadow:0 0 0 2px rgba(47,93,126,0.2)}
+    .auto-col.col-source{border:2px solid var(--value);background:#FFF8E8}
+    .auto-col.col-target{border:2px solid var(--correct);background:#F2F7EE}
+    .auto-col-head{padding:4px 6px;background:#EFE8D9;font-size:12px;font-weight:700;text-align:center;display:flex;justify-content:space-between;align-items:center}
+    .auto-col.col-source .auto-col-head{background:#F8E5C4;color:#7A4B00}
+    .auto-col.col-target .auto-col-head{background:#D9E8D1;color:#2D5A32}
+    .auto-col-body{padding:6px;flex:1;display:flex;flex-wrap:wrap;align-content:flex-start;gap:3px;min-height:100px}
+    .auto-col-foot{padding:3px 6px;background:#FAF6EE;border-top:1px solid var(--rule);font-size:11px;font-weight:700;color:var(--muted);text-align:center}
+    
+    /* 展演積木項目 */
+    .demo-block{display:inline-flex;align-items:center;justify-content:center;border:1px solid #777;font-size:11px;font-weight:700;color:var(--ink);transition:all .3s ease}
+    .demo-block.one{width:22px;height:22px;background:var(--one)}
+    .demo-block.ten{width:22px;height:55px;background:var(--ten)}
+    .demo-block.hundred{width:46px;height:46px;background:var(--hundred);font-size:10px}
+    .demo-block.thousand{width:56px;height:56px;background:var(--thousand);font-size:10px}
+    .demo-block.borrow-from{outline:3px solid var(--value);outline-offset:1px;animation:pulseBorrow .9s infinite alternate}
+    .demo-block.split-new{outline:2px solid var(--correct);animation:fadeIn .4s ease}
+    .demo-block.sub-fade{opacity:0.25;text-decoration:line-through;border-style:dashed}
+    
+    @keyframes pulseBorrow{from{transform:scale(0.96)}to{transform:scale(1.05)}}
+
+    /* 拆借動畫操作區 */
+    .auto-split-zone{margin-top:10px;padding:10px;border:1.5px dashed var(--value);border-radius:6px;background:#FFFDF7}
+    .auto-split-zone h4{margin:0 0 6px;font-size:13px;color:var(--value);display:flex;align-items:center;gap:6px}
+    .split-content{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-height:40px}
+    .split-arrow{font-size:18px;font-weight:700;color:var(--value)}
+    .split-ten-group{display:flex;flex-wrap:wrap;gap:3px;padding:4px;background:#F4FAF0;border:1px solid var(--correct);border-radius:4px}
+    
+    /* 直式同步展演卡 */
+    .auto-vertical-card{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:12px;display:flex;flex-direction:column;align-items:center}
+    .auto-vertical-card h4{margin:0 0 8px;font-size:14px;color:var(--muted)}
+    .sync-vertical{display:inline-flex;flex-direction:column;align-items:flex-end;font-family:"Courier New",monospace;font-size:24px;font-weight:700}
+    .sync-row{display:flex;align-items:center;justify-content:flex-end;height:36px}
+    .sync-row .op{width:22px;text-align:center;margin-right:6px}
+    .sync-digits{display:flex;align-items:center;justify-content:flex-end;gap:2px}
+    .sync-cell{width:28px;height:32px;display:inline-flex;align-items:center;justify-content:center;position:relative}
+    .sync-cell.active-col{background:#FFF3D6;border-radius:3px}
+    .sync-cell .borrow-slash{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;color:var(--error);font-size:26px;pointer-events:none}
+    .sync-cell .borrow-above{position:absolute;top:-18px;font-size:13px;color:var(--action);font-weight:800;background:#EBF3F8;padding:1px 3px;border-radius:3px;border:1px solid var(--action)}
+    .sync-cell .borrow-plus10{position:absolute;top:-18px;font-size:13px;color:var(--correct);font-weight:800;background:#EAF5E9;padding:1px 3px;border-radius:3px;border:1px solid var(--correct)}
+    .sync-line{width:100%;height:2px;background:var(--ink);margin:4px 0 6px}
+    .sync-note{margin-top:8px;font-size:12px;color:var(--muted);text-align:center}
+
+    /* 連續減法與借位還原專屬樣式 */
+    .combine-sub-card{background:var(--card);border:2px solid var(--action);border-radius:10px;padding:16px;margin:12px 0}
+    .combine-sub-formula{font-size:clamp(20px,3.5vw,28px);font-weight:700;font-family:"Courier New",monospace;text-align:center;margin:12px 0;letter-spacing:1px}
+    .combine-sub-formula .bracket-group{display:inline-block;padding:2px 8px;background:#FFF3D6;border:2px dashed var(--value);border-radius:6px}
+    .combine-steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:14px}
+    .combine-step-box{background:#FCFAF4;border:1px solid var(--rule);border-radius:8px;padding:12px}
+    .combine-step-box h4{margin:0 0 6px;color:var(--action);font-size:15px}
+    .combine-step-box p{margin:4px 0;font-size:14px;color:var(--ink)}
+    .block-group-box{display:flex;align-items:center;flex-wrap:wrap;gap:4px;min-height:36px;padding:6px;background:white;border:1px solid var(--rule);border-radius:6px;margin:6px 0}
+    .tag-borrow{background:#FFF3D6;border:1px solid var(--value);padding:2px 6px;border-radius:4px;font-size:12px;font-weight:700;color:#7A4B00}
+    .tag-sub{background:#EBF3F8;border:1px solid var(--action);padding:2px 6px;border-radius:4px;font-size:12px;font-weight:700;color:var(--action)}
+    .tag-combine{background:#EAF5E9;border:1px solid var(--correct);padding:2px 6px;border-radius:4px;font-size:12px;font-weight:700;color:var(--correct)}
+
+    /* 第 5 階段：交換位值教學專屬樣式 */
+    .exchange-container{display:flex;flex-direction:column;gap:16px}
+    .exchange-toolbar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;background:#FBF8EF;padding:12px;border:1px solid var(--rule);border-radius:8px}
+    .exchange-mode-badge{font-size:12px;font-weight:700;padding:3px 8px;border-radius:12px;background:#EFE8D9;color:var(--action);border:1px solid var(--action)}
+    .exchange-grid{display:grid;grid-template-columns:1.9fr 1.1fr;gap:16px;align-items:start}
+    @media(max-width:900px){.exchange-grid{grid-template-columns:1fr}}
+
+    /* 積木位值板 */
+    .exchange-board{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:var(--card);border:2px solid var(--rule);border-radius:10px;padding:10px}
+    @media(max-width:600px){.exchange-board{grid-template-columns:repeat(2,1fr)}}
+    .exchange-col{border:2px solid var(--rule);border-radius:8px;background:#FCFAF4;display:flex;flex-direction:column;min-height:220px;transition:all 0.3s ease}
+    .exchange-col.col-active{border-color:var(--action);box-shadow:0 0 0 2px rgba(47,93,126,0.25);background:#F7FBFD}
+    .exchange-col.col-source{border-color:var(--value);background:#FFF9EE}
+    .exchange-col.col-target{border-color:var(--correct);background:#F3FAF0}
+    .exchange-col-head{padding:6px;background:#EFE8D9;text-align:center;font-weight:700;font-size:14px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;align-items:center}
+    .exchange-col.col-source .exchange-col-head{background:#FCE8C8;color:#7A4B00}
+    .exchange-col.col-target .exchange-col-head{background:#DBEED3;color:#2D5A32}
+    .exchange-badge-delta{font-size:11px;font-weight:800;padding:2px 5px;border-radius:4px}
+    .badge-sub1{background:#F9D6D0;color:var(--error);border:1px solid var(--error)}
+    .badge-add10{background:#D2ECD0;color:var(--correct);border:1px solid var(--correct)}
+    .exchange-col-blocks{padding:8px;flex:1;display:flex;flex-wrap:wrap;align-content:flex-start;gap:4px;min-height:120px}
+    .exchange-sub-row{padding:6px 8px;border-top:1px dashed var(--rule);background:#F5F1E8;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+    .exchange-sub-blocks{display:flex;flex-wrap:wrap;gap:3px;min-height:20px}
+
+    /* 積木外觀與動畫元素 */
+    .ex-block{display:inline-flex;align-items:center;justify-content:center;border:1px solid #666;font-size:11px;font-weight:700;color:var(--ink);transition:all .3s ease;user-select:none}
+    .ex-block.one{width:24px;height:24px;background:var(--one)}
+    .ex-block.ten{width:24px;height:64px;background:var(--ten)}
+    .ex-block.hundred{width:56px;height:56px;background:var(--hundred);font-size:11px}
+    .ex-block.thousand{width:66px;height:66px;background:var(--thousand);font-size:11px}
+    .ex-block.selected-exchange{outline:3px solid var(--value);outline-offset:2px;animation:pulseBlock .8s infinite alternate}
+    .ex-block.new-split{outline:2px solid var(--correct);animation:fadeInBlock .4s ease}
+    .ex-block.subtracted-ghost{opacity:0.2;border-style:dashed;text-decoration:line-through}
+    .ex-block.sub-item{border-color:#A88;opacity:0.85}
+
+    @keyframes pulseBlock{from{transform:scale(0.96)}to{transform:scale(1.06)}}
+    @keyframes fadeInBlock{from{opacity:0.2;transform:scale(0.8)}to{opacity:1;transform:scale(1)}}
+
+    /* 中央交換工作台 */
+    .exchange-workbench{margin-top:12px;padding:12px;border:2px dashed var(--value);border-radius:8px;background:#FFFDF7;transition:all 0.3s ease}
+    .exchange-workbench h4{margin:0 0 6px;font-size:14px;color:var(--value);display:flex;align-items:center;gap:6px}
+    .exchange-bench-body{display:flex;align-items:center;flex-wrap:wrap;gap:10px;min-height:48px;padding:6px;background:#FFF9EE;border-radius:6px}
+    .exchange-arrow{font-size:22px;font-weight:900;color:var(--value)}
+    .exchange-split-bundle{display:flex;flex-wrap:wrap;gap:3px;padding:5px;background:#EAF6E7;border:1.5px solid var(--correct);border-radius:6px}
+
+    /* 提問、決策與局部填答區 */
+    .exchange-qa-card{background:var(--card);border:2px solid var(--action);border-radius:10px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+    .exchange-qa-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:1px solid var(--rule);padding-bottom:6px}
+    .exchange-qa-head h3{margin:0;font-size:17px;color:var(--action)}
+    .exchange-speech{padding:12px 14px;background:#F4F8FA;border-left:5px solid var(--action);border-radius:6px;margin:10px 0;font-size:15px;line-height:1.6;font-weight:600}
+    .exchange-speech.speech-warn{border-left-color:var(--value);background:#FFF9EE;color:#7A4B00}
+    .exchange-speech.speech-success{border-left-color:var(--correct);background:#F3FAF0;color:#23582A}
+
+    .exchange-choice-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+    .exchange-input-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0;padding:10px;background:#FFF8E8;border:1.5px solid var(--value);border-radius:8px}
+    .exchange-digit-input{width:46px!important;min-width:46px!important;height:42px;font-size:24px;font-weight:700;text-align:center;border:2px solid var(--action);border-radius:6px;color:var(--action)}
+    .exchange-digit-input:focus{border-color:var(--value);background:#FFFDF7;outline:none}
+
+    /* 同步直式卡 */
+    .exchange-sync-vertical{margin-top:14px;padding:12px;background:#FCFAF4;border:1px solid var(--rule);border-radius:8px;display:flex;flex-direction:column;align-items:center}
+    .exchange-sync-vertical h4{margin:0 0 8px;font-size:13px;color:var(--muted)}
+    .ex-v-table{display:inline-flex;flex-direction:column;align-items:flex-end;font-family:"Courier New",monospace;font-size:22px;font-weight:700}
+    .ex-v-row{display:flex;align-items:center;justify-content:flex-end;height:34px}
+    .ex-v-row .op{width:20px;text-align:center;margin-right:6px}
+    .ex-v-digits{display:flex;align-items:center;justify-content:flex-end;gap:2px}
+    .ex-v-cell{width:30px;height:32px;display:inline-flex;align-items:center;justify-content:center;position:relative}
+    .ex-v-cell.v-focus{background:#FFF3D6;border-radius:3px}
+    .ex-v-cell .v-slash{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;color:var(--error);font-size:24px;pointer-events:none}
+    .ex-v-cell .v-note-above{position:absolute;top:-18px;font-size:12px;color:var(--action);font-weight:800;background:#EBF3F8;padding:1px 3px;border-radius:3px;border:1px solid var(--action)}
+    .ex-v-cell .v-note-regroup{position:absolute;top:-18px;font-size:12px;color:var(--correct);font-weight:800;background:#EAF5E9;padding:1px 3px;border-radius:3px;border:1px solid var(--correct)}
+    .ex-v-line{width:100%;height:2px;background:var(--ink);margin:4px 0 6px}
+
+    [hidden]{display:none!important}@media(max-width:760px){.place-board{grid-template-columns:repeat(2,1fr)}.pattern-grid{grid-template-columns:1fr}.toolbar{align-items:stretch}.toolbar .button{margin-top:4px}.auto-place-board{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+  <header><h1>多位數減法：看見借位，也找出規律</h1><p class="intro">先操作積木，再用數線、直式和自己的話說明。每一步都可以停下來討論。</p></header>
+  <nav class="tabs" aria-label="教學區域"><button class="tab" aria-selected="true" data-tab="borrow">① 借位積木</button><button class="tab" aria-selected="false" data-tab="pattern">② 數字規律</button><button class="tab" aria-selected="false" data-tab="reasoning">③ 遮數字推理</button><button class="tab" aria-selected="false" data-tab="multiSub">④ 連續減與借位還原</button><button class="tab" aria-selected="false" data-tab="exchange">⑤ 交換位值教學</button></nav>
+  <main>
+    <section id="borrow" class="tab-panel"><div class="panel"><h2>借位積木教學</h2><p>當某一位不夠減時，請先把左邊相鄰的一個高位積木拆成 10 個低位積木。每按一次「下一步」，只做一件事。</p><div class="toolbar"><label class="field">選擇題型<select id="borrowExample"><optgroup label="── 經典例題 ──"><option value="11-6">11 − 6（先看個位）</option><option value="211-39" selected>211 − 39（個位借位）</option><option value="402-135">402 − 135（跨過 0）</option><option value="1002-345">1002 − 345（連續拆借）</option><option value="500-276">500 − 276（整百拆借）</option></optgroup><optgroup label="── 🎲 隨機出題 ──"><option value="random-all">🎲 隨機（混合題型）</option><option value="random-2">🎲 二位數減法（如 52 − 28）</option><option value="random-3">🎲 三位數減法（如 314 − 158）</option><option value="random-4">🎲 四位數減法（如 1203 − 456）</option></optgroup></select></label><button class="button" id="borrowRandom">🎲 換一題隨機</button><button class="button" id="borrowReset">重新開始</button><button class="button primary" id="borrowNext">下一步</button><button class="button" id="borrowAuto">逐步示範</button></div><div id="borrowMessage" class="message">請觀察每一欄有幾個積木，再按「下一步」。</div><div id="borrowEquation" class="equation"></div><div id="placeBoard" class="place-board"></div><div class="step-row"><button class="button" id="borrowHint">我想一想</button><button class="button" id="borrowAnswer" disabled>顯示完整答案</button></div><p id="borrowHintText" class="small-note"></p></div></section>
+    <section id="pattern" class="tab-panel" hidden><div class="panel"><h2>數字規律探索</h2><p>觀察「被減數、減數、差」各自如何變化。先預測下一列，再按按鈕驗證。</p><div class="toolbar"><label class="field">探索題組<select id="patternType"><option value="left">被減數增加，減數固定</option><option value="right">被減數固定，減數增加</option><option value="both">被減數與減數一起增加</option></select></label><button type="button" class="button primary" id="patternNext">顯示下一列</button><button type="button" class="button" id="patternReset">重新觀察</button></div><div id="patternMessage" class="message">請找出哪個數固定、哪個數增加，以及差會怎麼變。</div><div class="pattern-grid"><div><table class="pattern-table"><thead><tr><th>被減數</th><th>減數</th><th>差</th></tr></thead><tbody id="patternRows"></tbody></table></div><div><h3>積木操作圖示</h3><div id="patternBars" class="pattern-blocks" aria-live="polite"></div><h3>數線：起點往左退</h3><div id="patternLine" class="number-line"></div></div></div><p id="patternRule" class="small-note"></p></div></section>
+    <section id="reasoning" class="tab-panel" hidden><div class="panel"><h2>遮數字直式推理</h2><p>不要只猜答案：先看個位是否借位，再看十位受到什麼影響，最後用積木或直式驗證。</p><div class="toolbar"><button class="button primary" id="reasonCheck">檢查這一題</button><button class="button" id="reasonNext">下一題</button><button class="button" id="reasonHint">給我提示</button><button class="button" id="reasonAuto">自動展演</button></div><div id="reasoningList" class="reasoning-list"></div></div></section>
+    <section id="multiSub" class="tab-panel" hidden><div class="panel"><h2>連續減法與借位還原專區</h2><p>當算式出現「□ − 1 − 5 = 6」時，想想看：<strong>被借走 1 個，又要拿走 5 個，合起來一共拿走了幾個？</strong>把連續減法「合起來減」或「倒回去加回來」，就能輕鬆反推被減數！</p><div class="toolbar"><label class="field">選擇連續減情境<select id="multiSubSelect"><option value="0">情境 1：十位被借 1 又減 5（□ − 1 − 5 = 6）</option><option value="1">情境 2：十位被借 1 又減 7（□ − 1 − 7 = 3）</option><option value="2">情境 3：十位被借 1 又減 8（□ − 1 − 8 = 1）</option><option value="3">情境 4：百位跨 0 借走兩次（□ − 1 − 1 = 3）</option><option value="4">情境 5：生活拿糖果情境（□ − 2 − 3 = 4）</option></select></label><button class="button primary" id="multiSubCombine">① 幫我合起來減</button><button class="button" id="multiSubReverse">② 倒回去加回來</button><button class="button" id="multiSubReset">重新思考</button></div><div id="multiSubContent"></div></div></section>
+    <section id="exchange" class="tab-panel" hidden><div class="panel"><h2>交換位值：學生先判斷，再看動畫</h2><p>不是死記借位，而是「<strong>1 個高位可以交換成 10 個低位</strong>」。高位少 1 個，低位多 10 個，總數量沒有變，只是重新分組！</p><div class="exchange-container"><div class="exchange-toolbar"><label class="field">選擇題目<select id="exchangeProblemSelect"><optgroup label="── 🎯 七大驗收經典題 ──"><option value="422-157" selected>1. 422 − 157（連續借位 / 百與十皆交換）</option><option value="632-227">2. 632 − 227（個位交換一次）</option><option value="721-356">3. 721 − 356（個位與十位連續交換）</option><option value="402-185">4. 402 − 185（跨過 0：百→十→個逐級交換）</option><option value="810-275">5. 810 − 275（個位為 0，個位與十位交換）</option><option value="764-231">6. 764 − 231（無須交換 no-regrouping）</option><option value="1002-345">7. 1002 − 345（跨雙 0：千→百→十→個）</option></optgroup><optgroup label="── 🎲 受控隨機出題 ──"><option value="rnd-no-regrouping">🎲 隨機：不需交換（no-regrouping）</option><option value="rnd-borrow-ones">🎲 隨機：個位交換一次（borrow-ones）</option><option value="rnd-borrow-tens">🎲 隨機：十位交換一次（borrow-tens）</option><option value="rnd-borrow-across-zero">🎲 隨機：跨過 0 連續交換（borrow-across-zero）</option><option value="rnd-multiple-regrouping">🎲 隨機：多位連續交換（multiple-regrouping）</option></optgroup></select></label><label class="field">操作模式<select id="exchangeModeSelect"><option value="student" selected>👤 學生操作（自主判斷與填答）</option><option value="teacher">👨‍🏫 老師示範（單步微動操作）</option><option value="auto">▶️ 自動播放（判斷點自動暫停）</option></select></label><button class="button" id="exchangeRandomBtn">🎲 換一題</button><button class="button" id="exchangeResetBtn">🔄 重新開始</button><button class="button primary" id="exchangeTeacherNextBtn" style="display:none">👉 老師下一步</button><button class="button" id="exchangeAutoToggleBtn" style="display:none">⏸️ 暫停播放</button></div><div class="exchange-grid"><div><div class="exchange-board" id="exchangePlaceBoard"></div><div class="exchange-workbench" id="exchangeWorkbench" style="display:none"><h4>🔄 交換工作台：<span id="exchangeWorkbenchTitle"></span></h4><div class="exchange-bench-body" id="exchangeWorkbenchBody"></div></div></div><div><div class="exchange-qa-card"><div class="exchange-qa-head"><h3>💡 教學引導與互動提問</h3><span class="exchange-mode-badge" id="exchangeModeBadge">學生操作模式</span></div><div class="exchange-speech" id="exchangeSpeech"></div><div id="exchangeInteractiveArea"></div><div class="exchange-sync-vertical" id="exchangeSyncVertical"></div></div></div></div></div></div></section>
+  </main>
+  <script>
+    const placeNames=['個位','十位','百位','千位'];const borrowState={m:211,s:39,counts:[],subDigits:[],power:0,done:false};const $=id=>document.getElementById(id);function digits(n){return String(n).padStart(4,'0').split('').reverse().map(Number)}
+    function makeBlocks(count,p){const kind=['one','ten','hundred','thousand'][p];let html='';const shown=Math.min(count,25);for(let i=0;i<shown;i++)html+=`<span class="block ${kind}" aria-label="${placeNames[p]} 1 個">${p===0?'1':p===1?'10':p===2?'100':'1000'}</span>`;if(count>shown)html+=`<span class="limited">另 ${count-shown} 個</span>`;return html}
+    function setBorrowMessage(text,type=''){const el=$('borrowMessage');el.textContent=text;el.className='message '+type}function renderBorrow(){const board=$('placeBoard');board.innerHTML='';for(let p=3;p>=0;p--){const col=document.createElement('div');col.className='place-column';col.innerHTML=`<div class="place-head">${placeNames[p]}<small>${[1,10,100,1000][p]}</small></div><div class="block-area">${makeBlocks(borrowState.counts[p],p)}</div><div class="count">目前 ${borrowState.counts[p]} 個${placeNames[p]}積木；要拿走 ${borrowState.subDigits[p]} 個</div>`;board.appendChild(col)}const remaining=borrowState.counts.reduce((sum,n,p)=>sum+n*[1,10,100,1000][p],0);$('borrowEquation').innerHTML=`${borrowState.m} − ${borrowState.s} = <span class="minus">${borrowState.done?remaining:'?'}</span>`}
+    function generateRandomBorrow(targetDigits = null){
+      const val = $('borrowExample').value;
+      let digitsCount;
+      if (targetDigits) {
+        digitsCount = targetDigits;
+      } else if (val === 'random-2') {
+        digitsCount = 2;
+      } else if (val === 'random-3') {
+        digitsCount = 3;
+      } else if (val === 'random-4') {
+        digitsCount = 4;
+      } else {
+        // random-all: weighted towards 2 and 3 digits for clearer block visualization
+        const weights = [2, 2, 3, 3, 4];
+        digitsCount = weights[Math.floor(Math.random() * weights.length)];
+      }
+
+      let m, s;
+      if(digitsCount === 2) {
+        // 二位數：被減數 21~95，減數 8~89，確保個位有借位情境
+        const tens = Math.floor(Math.random() * 8) + 2; // 2~9
+        const ones = Math.floor(Math.random() * 6); // 0~5
+        m = tens * 10 + ones;
+        const subTens = Math.floor(Math.random() * tens); // 0~(tens-1)
+        const subOnes = Math.floor(Math.random() * 3) + ones + 2; // 確保 subOnes > ones
+        s = subTens * 10 + Math.min(9, subOnes);
+      } else if(digitsCount === 3) {
+        // 三位數：被減數 150~650，減數 45~380，積木數量適中便於觀察
+        const hundreds = Math.floor(Math.random() * 5) + 1; // 1~5
+        const tens = Math.floor(Math.random() * 10);
+        const ones = Math.floor(Math.random() * 6);
+        m = hundreds * 100 + tens * 10 + ones;
+        const subHundreds = Math.floor(Math.random() * hundreds);
+        const subTens = Math.floor(Math.random() * 8) + 2;
+        const subOnes = Math.floor(Math.random() * 4) + ones + 2;
+        s = subHundreds * 100 + subTens * 10 + Math.min(9, subOnes);
+      } else {
+        // 四位數：被減數 1000~2500，減數 120~880，涵蓋跨位/連續借位
+        const thousands = 1;
+        const hundreds = Math.floor(Math.random() * 8); // 0~7 (易遇跨 0)
+        const tens = Math.floor(Math.random() * 6);
+        const ones = Math.floor(Math.random() * 6);
+        m = thousands * 1000 + hundreds * 100 + tens * 10 + ones;
+        const subHundreds = Math.floor(Math.random() * 6) + 1;
+        const subTens = Math.floor(Math.random() * 8) + 2;
+        const subOnes = Math.floor(Math.random() * 4) + ones + 2;
+        s = subHundreds * 100 + subTens * 10 + Math.min(9, subOnes);
+      }
+
+      if(m <= s) { m = s + 15; }
+
+      borrowState.m = m;
+      borrowState.s = s;
+      borrowState.counts = digits(m);
+      borrowState.subDigits = digits(s);
+      borrowState.power = 0;
+      borrowState.done = false;
+      $('borrowAnswer').disabled = true;
+      $('borrowHintText').textContent = '';
+      renderBorrow();
+      setBorrowMessage(`隨機【${digitsCount} 位數】題目：${m} − ${s}。先看個位：有幾個？要拿走幾個？請按「下一步」。`);
+    }
+    function startBorrow(){
+      const val = $('borrowExample').value;
+      if(val.startsWith('random')) {
+        generateRandomBorrow();
+        return;
+      }
+      const [m, s] = val.split('-').map(Number);
+      borrowState.m = m;
+      borrowState.s = s;
+      borrowState.counts = digits(m);
+      borrowState.subDigits = digits(s);
+      borrowState.power = 0;
+      borrowState.done = false;
+      $('borrowAnswer').disabled = true;
+      $('borrowHintText').textContent = '';
+      renderBorrow();
+      setBorrowMessage('先看個位：有幾個？要拿走幾個？請按「下一步」。');
+    }
+    function borrowStep(){if(borrowState.done)return;let p=borrowState.power;while(p<4&&borrowState.subDigits[p]===0)p++;if(p>=4){borrowState.done=true;$('borrowAnswer').disabled=false;renderBorrow();setBorrowMessage('所有減數積木都消去了，請說出剩下的積木代表多少。','success');return}if(borrowState.counts[p]<borrowState.subDigits[p]){let h=p+1;while(h<4&&borrowState.counts[h]===0)h++;if(h>=4){setBorrowMessage('這題的積木不夠拆借，請重新出題。','error');return}borrowState.counts[h]--;borrowState.counts[h-1]+=10;renderBorrow();setBorrowMessage(`${placeNames[p]}不夠減，從${placeNames[h]}拆 1 個，換成 10 個${placeNames[h-1]}。`);return}borrowState.counts[p]-=borrowState.subDigits[p];renderBorrow();setBorrowMessage(`${placeNames[p]}消去 ${borrowState.subDigits[p]} 個，還剩 ${borrowState.counts[p]} 個${placeNames[p]}。`);borrowState.power=p+1}
+    function autoBorrow(){if(borrowState.done)return;borrowStep();if(!borrowState.done)setTimeout(autoBorrow,900)}$('borrowExample').addEventListener('change',e=>{if(e.target.value.startsWith('random')){generateRandomBorrow();return;}startBorrow()});$('borrowRandom').onclick=()=>generateRandomBorrow();$('borrowReset').onclick=startBorrow;$('borrowNext').onclick=borrowStep;$('borrowAuto').onclick=autoBorrow;$('borrowHint').onclick=()=>{$('borrowHintText').textContent=borrowState.power<4?`提示：先看${placeNames[borrowState.power]}，${borrowState.counts[borrowState.power]} 不夠拿走 ${borrowState.subDigits[borrowState.power]} 時，要向左邊相鄰的一欄借 1 個。`:'已完成，請用自己的話說明。'};$('borrowAnswer').onclick=()=>{$('borrowHintText').textContent=`答案是 ${borrowState.m-borrowState.s}。請再用直式驗算：${borrowState.m} − ${borrowState.s} = ${borrowState.m-borrowState.s}。`};
+    const patterns={left:[[11,6],[12,6],[13,6],[14,6],[15,6],[16,6]],right:[[20,6],[20,7],[20,8],[20,9],[20,10]],both:[[11,6],[12,7],[13,8],[14,9],[15,10]]};
+    let patternIndex=0;
+    let patternSelectedIndex=0;
+    const patternMessages={
+      left:'觀察：被減數每次增加 1，減數固定為 6。',
+      right:'觀察：被減數固定為 20，減數每次增加 1。',
+      both:'觀察：被減數和減數每次都增加 1，增加量相同。'
+    };
+    const patternRules={
+      left:'被減數每次增加 1，減數固定為 6，所以差每次增加 1。',
+      right:'被減數固定為 20，減數每次增加 1，所以差每次減少 1。',
+      both:'被減數和減數每次都增加 1，增加量相同，所以差保持不變。'
+    };
+    function patternBlocksHTML(tens,ones,extraClass=''){
+      let html='';
+      for(let i=0;i<tens;i++)html+=`<span class="pattern-block ten ${extraClass}" aria-label="十位積木 10"><span class="ten-grid" aria-hidden="true">${Array.from({length:10},(_,index)=>`<i>${index+1}</i>`).join('')}</span><span class="ten-label">10</span></span>`;
+      for(let i=0;i<ones;i++)html+=`<span class="pattern-block one ${extraClass}" aria-label="個位積木 1">1</span>`;
+      return html||'<span class="block-note">沒有積木</span>';
+    }
+    function patternBlockGroup(title,description,tens,ones,extraClass=''){
+      return `<div class="block-operation ${extraClass}"><h4>${title}</h4><p>${description}</p><div class="block-set">${patternBlocksHTML(tens,ones,extraClass)}</div></div>`;
+    }
+    function renderPatternBlocks(rows){
+      const patternBars = $('patternBars');
+      if(!patternBars) return;
+      if(!rows.length){patternBars.innerHTML='<p class="block-note">按「顯示下一列」後，會在這裡看見實際拿走積木的過程。</p>';return;}
+      const [m,s]=rows[rows.length-1];
+      const difference=m-s;
+      const minuendTens=Math.floor(m/10),minuendOnes=m%10;
+      const subtrahendTens=Math.floor(s/10),subtrahendOnes=s%10;
+      const remainingTens=Math.floor(difference/10),remainingOnes=difference%10;
+      const needsExchange=minuendOnes<subtrahendOnes;
+      const exchangeNote=needsExchange?'個位不夠拿走，先把 1 個十位積木換成 10 個個位積木，再拿走減數。':'直接從被減數的個位積木拿走減數。';
+      const exchangedBlocks=needsExchange?patternBlockGroup('拆借後的被減數',`把 1 個十位換成 10 個個位：${m} = ${minuendTens-1} 個十位 + ${minuendOnes+10} 個個位。`,minuendTens-1,minuendOnes+10):'';
+      patternBars.innerHTML=`<div class="block-operation"><h4>目前列：${m} − ${s} = ${difference}</h4><p class="block-action">操作：${needsExchange?'先拆 1 個十位積木；':''}拿走 ${s} 個${s<10?'個位':''}積木。</p></div>${patternBlockGroup('被減數積木',`${m} = ${minuendTens} 個十位 + ${minuendOnes} 個個位`,minuendTens,minuendOnes)}${exchangedBlocks}${patternBlockGroup('減數積木',`${s} = ${subtrahendTens} 個十位 + ${subtrahendOnes} 個個位`,subtrahendTens,subtrahendOnes,'block-take')}${patternBlockGroup('拿走的積木',`${exchangeNote} 明確拿走 ${s} 個積木。`,subtrahendTens,subtrahendOnes,'block-take')}${patternBlockGroup('剩餘積木',`留下 ${difference} 個積木，表示差為 ${difference}。`,remainingTens,remainingOnes,'block-remaining')}<p class="block-note">算式：${m} − ${s} = ${difference}</p>`;
+    }
+    function renderPattern(){
+      const patternType = $('patternType');
+      const patternRows = $('patternRows');
+      const patternLine = $('patternLine');
+      const patternRule = $('patternRule');
+      if(!patternType || !patternRows) return;
+      const key=patternType.value;
+      const rows=patterns[key].slice(0,patternIndex);
+      const activeIndex=Math.min(patternSelectedIndex, rows.length-1);
+      patternRows.innerHTML=rows.map(([m,s], idx)=>`<tr class="${idx===activeIndex?'active-row':''}" data-pattern-index="${idx}" tabindex="0" role="button" aria-label="選擇第 ${idx+1} 列：${m} 減 ${s} 等於 ${m-s}"><td>${m}</td><td>${s}</td><td>${m-s}</td></tr>`).join('');
+      renderPatternBlocks(rows.length ? [rows[activeIndex]] : []);
+      if(patternLine){
+        patternLine.innerHTML='';
+        if(rows.length){
+          const min=Math.min(...rows.map(([m,s])=>m-s))-1;
+          const max=Math.max(...rows.map(([m])=>m))+1;
+          const range=max-min;
+          for(let n=min;n<=max;n++){
+            const tick=document.createElement('div');
+            tick.className='tick';
+            tick.style.left=((n-min)/range*100)+'%';
+            tick.innerHTML=`<span>${n}</span>`;
+            patternLine.appendChild(tick);
+          }
+          const [m,s]=rows[activeIndex];
+          const arrow=document.createElement('div');
+          arrow.className='move-arrow';
+          arrow.setAttribute('aria-label',`${m} 減去 ${s}，往左到 ${m-s}`);
+          arrow.style.left=((m-s-min)/range*100)+'%';
+          arrow.style.width=(s/range*100)+'%';
+          patternLine.appendChild(arrow);
+        }
+      }
+      if(patternRule) patternRule.textContent=patternIndex?patternRules[key]:'按「顯示下一列」開始觀察。';
+    }
+    function resetPattern(){
+      patternIndex = 1;
+      patternSelectedIndex = 0;
+      renderPattern();
+      const pNext = $('patternNext');
+      if(pNext) pNext.disabled = false;
+      const patternMessage = $('patternMessage');
+      const patternType = $('patternType');
+      if(patternMessage && patternType) patternMessage.textContent = patternMessages[patternType.value];
+    }
+    function showNextPatternRow(){
+      const patternType = $('patternType');
+      if(!patternType) return;
+      const list = patterns[patternType.value];
+      if(patternIndex < list.length) {
+        patternIndex += 1;
+      }
+      patternSelectedIndex = patternIndex - 1;
+      renderPattern();
+      const pNext = $('patternNext');
+      const patternMessage = $('patternMessage');
+      if(patternIndex >= list.length) {
+        if(pNext) pNext.disabled = true;
+        if(patternMessage) patternMessage.textContent = '此題組所有規律已顯示完畢！請觀察差的變化規律，或點選「重新觀察」。';
+      } else {
+        if(pNext) pNext.disabled = false;
+        if(patternMessage) patternMessage.textContent = patternMessages[patternType.value] + `（目前顯示第 ${patternIndex} 列，共 ${list.length} 列）`;
+      }
+    }
+    function selectPatternRow(rowIndex){
+      const patternType = $('patternType');
+      const list = patternType ? patterns[patternType.value] : null;
+      if(!list || rowIndex < 0 || rowIndex >= patternIndex) return;
+      patternSelectedIndex = rowIndex;
+      renderPattern();
+      const patternMessage = $('patternMessage');
+      if(patternMessage) patternMessage.textContent = patternMessages[patternType.value] + `（目前選取第 ${rowIndex+1} 列，共顯示 ${patternIndex} 列）`;
+    }
+    let patternInitialized = false;
+    function initPatternDirectly() {
+      const pNext = $('patternNext');
+      const pReset = $('patternReset');
+      const pType = $('patternType');
+      if (!pNext || !pReset || !pType) return;
+      // 使用單一 DOM property 綁定，避免 inline handler 與 addEventListener 重複執行。
+      pNext.onclick = showNextPatternRow;
+      pReset.onclick = resetPattern;
+      pType.onchange = resetPattern;
+      const pRows = $('patternRows');
+      pRows.onclick = event => {
+        const row = event.target.closest('tr');
+        if(row) selectPatternRow(Number(row.dataset.patternIndex));
+      };
+      pRows.onkeydown = event => {
+        if(event.key !== 'Enter' && event.key !== ' ') return;
+        const row = event.target.closest('tr');
+        if(row) {
+          event.preventDefault();
+          selectPatternRow(Number(row.dataset.patternIndex));
+        }
+      };
+      if (!patternInitialized) {
+        patternInitialized = true;
+        resetPattern();
+      }
+    }
+    initPatternDirectly();
+    document.addEventListener('DOMContentLoaded', initPatternDirectly);
+    window.addEventListener('load', initPatternDirectly);
+
+    const questions=[
+      { minuend:'4□2', subtrahend:'157', difference:'265', answer:['2'], hints:['先看個位：2 個不夠拿走 7 個，要先從十位借 1 給個位。','個位借到 10 後算 12 − 7 = 5；現在看十位：框框被借走了 1 個，還要再拿走 5 個。','連續減思考：被借走 1 個又拿走 5 個，【一共被拿走了 1 + 5 = 6 個】！','把十位寫成合併算式：□ − (1 + 5) = 6，也就是 □ − 6 = 6。','倒回去加回來：□ = 6 + 6 = 12。十位填 2，再向百位借 1（4 被借 1 變 3，3 − 1 = 2）。','把找到的數字 2 填入框框，再按「檢查這一題」。'] },
+      { minuend:'632', subtrahend:'2□7', difference:'405', answer:['2'], hints:['先看個位：2 和 7，個位不夠減向十位借 1。十位 3 借走 1 個後剩下 2。','個位算 12 − 7 = 5；十位剩下 2 個，減去框框要等於 0。','十位的算式是：2 − □ = 0。想一想：2 減去哪個數字會保持 0？','倒回去想：2 − 2 = 0，所以減數的十位框框就是 2。','驗算百位：6 − 2 = 4，完全正確！','把 2 填入框框，再按「檢查這一題」。'] },
+      { minuend:'721', subtrahend:'356', difference:'3□5', answer:['6'], hints:['先看個位：1 不夠減 6，從十位借 1，個位算 11 − 6 = 5。','十位原本是 2，借走 1 後剩下 1。現在十位要算 1 − 5，不夠減！','十位向百位借 1 個百（換成 10 個十），十位變成 1 + 10 = 11。','十位的算式是：11 − 5 = □。請算出一共剩下幾個十？','11 − 5 = 6，所以差的十位框框就是 6。','把 6 填入框框，再按「檢查這一題」。'] },
+      { minuend:'4□2', subtrahend:'185', difference:'217', answer:['0'], hints:['先看個位：2 不夠減 5，從十位借 1，個位算 12 − 5 = 7。','看十位：十位被借走了 1 個，又要拿走 8 個，差要剩下 1。','連續減思考：被借走 1 個又減 8 個，【一共拿走了 1 + 8 = 9 個】！','寫成合併算式：□ − (1 + 8) = 1，也就是 □ − 9 = 1。','倒回去加回來：□ = 1 + 9 = 10。框框填 0，那借來的 10 是向百位借的（4 變 3，3 − 1 = 2）。','把 0 填入框框，再按「檢查這一題」。'] },
+      { minuend:'8□0', subtrahend:'275', difference:'535', answer:['1'], hints:['先看個位：0 不夠減 5，從十位借 1，個位算 10 − 5 = 5。','看十位：十位被借走了 1 個，又要拿走 7 個，差要留下 3。','連續減思考：借走 1 個又拿走 7 個，【一共被拿走了 1 + 7 = 8 個】！','寫成合併算式：□ − (1 + 7) = 3，也就是 □ − 8 = 3。','倒回去加回來：□ = 3 + 8 = 11。框框填 1，代表 1 個十（10 來自向百位借 1）。','把 1 填入框框，再按「檢查這一題」。'] },
+      { minuend:'□43', subtrahend:'128', difference:'215', answer:['3'], hints:['先看個位：3 不夠減 8，向十位借 1，個位算 13 − 8 = 5。','看十位：十位 4 被借走 1 剩下 3，算 3 − 2 = 1。十位沒有向百位借位！','看百位：百位被減數是框框，減去 1 要等於 2。','百位算式：□ − 1 = 2。','倒回去加回來：□ = 2 + 1 = 3。','把 3 填入框框，再按「檢查這一題」。'] },
+      { minuend:'730', subtrahend:'□28', difference:'402', answer:['3'], hints:['先看個位：0 不夠減 8，從十位借 1，個位算 10 − 8 = 2。','看十位：十位 3 被借走 1 剩下 2，2 − 2 = 0。十位沒有向百位借位！','看百位：7 減去框框要等於 4。','百位算式：7 − □ = 4。想一想 7 減去多少等於 4？','倒回去想：□ = 7 − 4 = 3。','把 3 填入框框，再按「檢查這一題」。'] },
+      { minuend:'8□0', subtrahend:'275', difference:'535', answer:['1'], hints:['先看個位：0 不夠減 5，向十位借 1，個位算 10 − 5 = 5。','看十位：被借走 1 又減 7，一共減了 1 + 7 = 8 個。結果剩下 3。','十位算式：□ − 8 = 3 ➔ □ = 3 + 8 = 11。','框框填 1（借來的 10 由百位 8 借出，8 變 7，7 − 2 = 5）。','把 1 填入框框，再按「檢查這一題」。'] },
+      { minuend:'□02', subtrahend:'145', difference:'357', answer:['5'], hints:['先看個位：2 不夠減 5 向十位借；十位是 0 不夠，所以百位被借了 1 給十位，十位再借 1 給個位。','看百位：百位被借走了 1，又要減去減數的 1，最後剩下 3。','連續減思考：百位被借走 1 又減去 1，【百位一共被拿走了 1 + 1 = 2 個百】！','寫成合併算式：□ − (1 + 1) = 3，也就是 □ − 2 = 3。','倒回去加回來：□ = 3 + 2 = 5。','把 5 填入框框，再按「檢查這一題」。'] },
+      { minuend:'640', subtrahend:'2□5', difference:'375', answer:['6'], hints:['先看個位：0 不夠減 5，向十位借 1，個位算 10 − 5 = 5。','看十位：4 被借走 1 剩下 3。3 減去框框要得到 7，顯然不夠減！','十位向百位借 1（百位 6 變 5），十位變成 3 + 10 = 13。','十位算式：13 − □ = 7。想一想 13 減去多少會剩下 7？','倒回去算：□ = 13 − 7 = 6。','把 6 填入框框，再按「檢查這一題」。'] }
+    ];
+    let reasonIndex=0;
+    let reasonHintLevel=0;
+    let reasonAutoTimer=null;
+    let reasonAutoStateIndex=0;
+    let reasonAutoStates=[];
+    let isReasonAutoPlaying=false;
+
+    function formatVerticalRow(str, maxLen, opChar = '') {
+      const padded = str.padStart(maxLen, ' ');
+      let cells = '';
+      for (const char of padded) {
+        if (char === ' ') {
+          cells += '<span class="vertical-cell"></span>';
+        } else if (char === '□') {
+          cells += '<span class="vertical-cell box-cell"><input class="answer-box" maxlength="1" inputmode="numeric" aria-label="填入遮住的數字"></span>';
+        } else {
+          cells += `<span class="vertical-cell num-cell">${char}</span>`;
+        }
+      }
+      return `<div class="vertical-row"><span class="op">${opChar}</span><div class="digits">${cells}</div></div>`;
+    }
+
+    function renderReason(){
+      const q=questions[reasonIndex];
+      const maxLen = Math.max(q.minuend.length, q.subtrahend.length, q.difference.length);
+      const verticalHTML = `
+        <div class="vertical-calc-wrap">
+          ${formatVerticalRow(q.minuend, maxLen, '')}
+          ${formatVerticalRow(q.subtrahend, maxLen, '−')}
+          <div class="vertical-line"></div>
+          ${formatVerticalRow(q.difference, maxLen, '')}
+        </div>
+      `;
+      $('reasoningList').innerHTML=`
+        <article class="reason-card">
+          <div class="reason-card-head">
+            <strong>第 ${reasonIndex+1} 題 / 共 ${questions.length} 題</strong>
+            <span>請在直式框框內填入正確數字</span>
+          </div>
+          ${verticalHTML}
+          <div id="reasonFeedback" class="feedback"></div>
+          <div id="reasonAutoContainer" class="auto-demo-container" hidden aria-live="polite"></div>
+        </article>
+      `;
+      reasonHintLevel=0;
+      $('reasonHint').textContent='給我提示';
+      stopReasonAuto();
+      $('reasonAuto').textContent='自動展演';
+      reasonAutoStateIndex=0;
+      reasonAutoStates=[];
+      const firstInput = document.querySelector('.answer-box');
+      if(firstInput) firstInput.focus();
+    }
+
+    function checkReason(){
+      const q=questions[reasonIndex],vals=[...document.querySelectorAll('.answer-box')].map(x=>x.value.trim()),f=$('reasonFeedback');
+      if(!vals.length || vals.some(v => v === '')) {
+        f.textContent = '請先在框框中填入數字喔！';
+        f.className = 'feedback incorrect';
+        return;
+      }
+      if(vals.join('')===q.answer.join('')){
+        f.textContent='🎉 答對了！請用直式與位值思考借位的過程。';
+        f.className='feedback correct';
+      }else{
+        f.textContent='🤔 再檢查一次位值與借位，不急著猜答案喔！';
+        f.className='feedback incorrect';
+      }
+    }
+    $('reasonCheck').onclick=checkReason;
+    $('reasonNext').onclick=()=>{
+      stopReasonAuto();
+      reasonIndex=(reasonIndex+1)%questions.length;
+      renderReason();
+    };
+
+    function showNextReasonHint(){const q=questions[reasonIndex];const feedback=$('reasonFeedback');if(reasonHintLevel<q.hints.length){feedback.textContent=`提示 ${reasonHintLevel+1}：${q.hints[reasonHintLevel]}`;feedback.className='feedback';reasonHintLevel+=1;if(reasonHintLevel===q.hints.length)$('reasonHint').textContent='重新看提示';return true;}return false;}
+    $('reasonHint').onclick=()=>{if(!showNextReasonHint()){reasonHintLevel=0;$('reasonFeedback').textContent='提示已重新開始，先從個位觀察。';$('reasonFeedback').className='feedback';$('reasonHint').textContent='給我提示';}};
+
+    /* ----------------------------------------------------
+       自動展演狀態機模型 (State Machine Generator)
+       依據 Proposal 分鏡 Step 0 ~ Step 7
+    ---------------------------------------------------- */
+    function generateReasonAutoStates(q) {
+      const mVal = Number(q.minuend.replace('□', q.answer[0]));
+      const sVal = Number(q.subtrahend.replace('□', q.answer[0]));
+      const dVal = mVal - sVal;
+      
+      const mDigits = digits(mVal); // [個, 十, 百, 千]
+      const sDigits = digits(sVal);
+      const dDigits = digits(dVal);
+
+      let counts = [...mDigits];
+      let subDigits = [...sDigits];
+      let verticalMarks = [
+        { slashed: false, topNum: null, plus10: false },
+        { slashed: false, topNum: null, plus10: false },
+        { slashed: false, topNum: null, plus10: false },
+        { slashed: false, topNum: null, plus10: false }
+      ];
+      let diffVisible = [false, false, false, false];
+
+      const states = [];
+
+      // Step 0: 準備題目
+      states.push({
+        phase: 'init',
+        title: 'Step 0：準備題目與積木',
+        text: `題目為 ${mVal} − ${sVal}。所有位值積木已在上方各欄準備就緒，現在從個位開始看。`,
+        activePlace: 0,
+        sourcePlace: null,
+        targetPlace: null,
+        counts: [...counts],
+        subDigits: [...subDigits],
+        verticalMarks: JSON.parse(JSON.stringify(verticalMarks)),
+        diffVisible: [...diffVisible],
+        splitInfo: null,
+        subtractedUnits: null,
+        mVal, sVal, dVal
+      });
+
+      // 逐步處理 個位(0) -> 十位(1) -> 百位(2) -> 千位(3)
+      for (let p = 0; p < 4; p++) {
+        if (p > 0 && counts.slice(p).every(v => v === 0) && subDigits.slice(p).every(v => v === 0)) {
+          break;
+        }
+
+        const curCount = counts[p];
+        const subCount = subDigits[p];
+
+        // Step 1: 比較該位
+        states.push({
+          phase: 'compare',
+          title: `Step 1：比較【${placeNames[p]}】`,
+          text: `${placeNames[p]}目前有 ${curCount} 個積木，要拿走 ${subCount} 個。${curCount < subCount ? '不夠減，需要向左邊相鄰高位借 1 個積木！' : '數量足夠，可以直接消去減數積木。'}`,
+          activePlace: p,
+          sourcePlace: null,
+          targetPlace: null,
+          counts: [...counts],
+          subDigits: [...subDigits],
+          verticalMarks: JSON.parse(JSON.stringify(verticalMarks)),
+          diffVisible: [...diffVisible],
+          splitInfo: null,
+          subtractedUnits: null,
+          mVal, sVal, dVal
+        });
+
+        // 判斷是否需借位（可能包含跨 0 連續借位）
+        if (curCount < subCount) {
+          let needBorrowPlace = p;
+          while (counts[needBorrowPlace] < subDigits[needBorrowPlace]) {
+            let h = needBorrowPlace + 1;
+            while (h < 4 && counts[h] === 0) {
+              h++;
+            }
+            if (h >= 4) break;
+
+            for (let fromP = h; fromP > needBorrowPlace; fromP--) {
+              const toP = fromP - 1;
+
+              // Step 2: 標示借位來源
+              states.push({
+                phase: 'borrow-source',
+                title: `Step 2：標示借位來源【${placeNames[fromP]} → ${placeNames[toP]}】`,
+                text: `${placeNames[toP]}不夠，從左邊【${placeNames[fromP]}】借 1 個積木（箭頭指向${placeNames[toP]}）。`,
+                activePlace: toP,
+                sourcePlace: fromP,
+                targetPlace: toP,
+                counts: [...counts],
+                subDigits: [...subDigits],
+                verticalMarks: JSON.parse(JSON.stringify(verticalMarks)),
+                diffVisible: [...diffVisible],
+                splitInfo: { fromP, toP, step: 'start' },
+                subtractedUnits: null,
+                mVal, sVal, dVal
+              });
+
+              // Step 3: 拆解動畫 (1 個高位 = 10 個低位)
+              counts[fromP] -= 1;
+              counts[toP] += 10;
+
+              states.push({
+                phase: 'split',
+                title: `Step 3：積木拆解【1 個${placeNames[fromP]} = 10 個${placeNames[toP]}】`,
+                text: `把 1 個【${placeNames[fromP]}積木】移到拆解區，展開成 10 個【${placeNames[toP]}積木】並放入${placeNames[toP]}欄。現在${placeNames[fromP]}剩 ${counts[fromP]} 個，${placeNames[toP]}變成 ${counts[toP]} 個。`,
+                activePlace: toP,
+                sourcePlace: fromP,
+                targetPlace: toP,
+                counts: [...counts],
+                subDigits: [...subDigits],
+                verticalMarks: JSON.parse(JSON.stringify(verticalMarks)),
+                diffVisible: [...diffVisible],
+                splitInfo: { fromP, toP, step: 'split-done', addedCount: 10 },
+                subtractedUnits: null,
+                mVal, sVal, dVal
+              });
+
+              // Step 4: 同步直式借位記號
+              verticalMarks[fromP].slashed = true;
+              verticalMarks[fromP].topNum = counts[fromP];
+              if (toP === p) {
+                verticalMarks[toP].plus10 = true;
+              } else {
+                verticalMarks[toP].slashed = true;
+                verticalMarks[toP].topNum = counts[toP];
+              }
+
+              states.push({
+                phase: 'borrow-mark',
+                title: `Step 4：同步直式借位記號`,
+                text: `直式同步更新：【${placeNames[fromP]}】劃掉寫上借位後的 ${counts[fromP]}；【${placeNames[toP]}】增加 10（變成 ${counts[toP]}）。`,
+                activePlace: toP,
+                sourcePlace: fromP,
+                targetPlace: toP,
+                counts: [...counts],
+                subDigits: [...subDigits],
+                verticalMarks: JSON.parse(JSON.stringify(verticalMarks)),
+                diffVisible: [...diffVisible],
+                splitInfo: null,
+                subtractedUnits: null,
+                mVal, sVal, dVal
+              });
+            }
+          }
+        }
+
+        // Step 5: 逐一消去減數
+        const currentTotal = counts[p];
+        const toRemove = subDigits[p];
+        const remaining = currentTotal - toRemove;
+        counts[p] = remaining;
+        diffVisible[p] = true;
+
+        states.push({
+          phase: 'subtract',
+          title: `Step 5：消去減數【${placeNames[p]}】`,
+          text: `【${placeNames[p]}】原有的 ${currentTotal} 個積木中，拿走減數的 ${toRemove} 個積木，剩下 ${remaining} 個。直式${placeNames[p]}寫下 ${remaining}。`,
+          activePlace: p,
+          sourcePlace: null,
+          targetPlace: null,
+          counts: [...counts],
+          subDigits: [...subDigits],
+          verticalMarks: JSON.parse(JSON.stringify(verticalMarks)),
+          diffVisible: [...diffVisible],
+          splitInfo: null,
+          subtractedUnits: { place: p, removed: toRemove, left: remaining },
+          mVal, sVal, dVal
+        });
+      }
+
+      // Step 7: 完成與反推
+      states.push({
+        phase: 'complete',
+        title: 'Step 7：展演完成與反推思考',
+        text: `所有減數積木已消去完畢！完整差為 ${dVal}。請依照剛才看到的直式借位與積木拆解過程，把答案填入直式框框內，再按「檢查這一題」！`,
+        activePlace: null,
+        sourcePlace: null,
+        targetPlace: null,
+        counts: [...counts],
+        subDigits: [...subDigits],
+        verticalMarks: JSON.parse(JSON.stringify(verticalMarks)),
+        diffVisible: [true, true, true, true],
+        splitInfo: null,
+        subtractedUnits: null,
+        mVal, sVal, dVal
+      });
+
+      return states;
+    }
+
+    /* ----------------------------------------------------
+       自動展演渲染器 (Render Auto State)
+    ---------------------------------------------------- */
+    function renderReasonAutoState() {
+      const container = $('reasonAutoContainer');
+      if (!container || !reasonAutoStates.length) return;
+      container.hidden = false;
+
+      const state = reasonAutoStates[reasonAutoStateIndex];
+      const maxLen = Math.max(String(state.mVal).length, String(state.sVal).length);
+
+      // 1. 各欄積木 HTML
+      let boardColsHTML = '';
+      for (let p = 3; p >= 0; p--) {
+        let colClass = 'auto-col';
+        if (state.activePlace === p) colClass += ' col-focus';
+        if (state.sourcePlace === p) colClass += ' col-source';
+        if (state.targetPlace === p) colClass += ' col-target';
+
+        const kind = ['one', 'ten', 'hundred', 'thousand'][p];
+        const valText = [1, 10, 100, 1000][p];
+        const count = state.counts[p];
+        const subCount = state.subDigits[p];
+
+        let blocksHTML = '';
+        const shown = Math.min(count, 18);
+        for (let i = 0; i < shown; i++) {
+          let extra = '';
+          if (state.phase === 'borrow-source' && state.sourcePlace === p && i === shown - 1) {
+            extra = 'borrow-from';
+          } else if (state.phase === 'split' && state.targetPlace === p && i >= shown - (state.splitInfo?.addedCount || 0)) {
+            extra = 'split-new';
+          }
+          blocksHTML += `<span class="demo-block ${kind} ${extra}" title="${placeNames[p]} 1 個 (${valText})">${valText}</span>`;
+        }
+        if (count > shown) {
+          blocksHTML += `<span class="limited" style="font-size:11px">另 ${count - shown} 個</span>`;
+        }
+        if (count === 0) {
+          blocksHTML = `<span class="block-note" style="margin:auto">0 個</span>`;
+        }
+
+        boardColsHTML += `
+          <div class="${colClass}" id="autoCol_${p}">
+            <div class="auto-col-head">
+              <span>${placeNames[p]}</span>
+              <small>${valText}</small>
+            </div>
+            <div class="auto-col-body">${blocksHTML}</div>
+            <div class="auto-col-foot">現有 ${count} / 要減 ${subCount}</div>
+          </div>
+        `;
+      }
+
+      // 2. 拆解區 HTML
+      let splitZoneHTML = '';
+      if (state.splitInfo) {
+        const { fromP, toP } = state.splitInfo;
+        const fromKind = ['one', 'ten', 'hundred', 'thousand'][fromP];
+        const toKind = ['one', 'ten', 'hundred', 'thousand'][toP];
+        const fromVal = [1, 10, 100, 1000][fromP];
+        const toVal = [1, 10, 100, 1000][toP];
+
+        splitZoneHTML = `
+          <div class="auto-split-zone">
+            <h4>🔄 拆解轉換區：1 個【${placeNames[fromP]}】 ➔ 10 個【${placeNames[toP]}】</h4>
+            <div class="split-content">
+              <span class="demo-block ${fromKind} borrow-from">${fromVal}</span>
+              <span class="split-arrow">➔ 拆解為 ➔</span>
+              <div class="split-ten-group">
+                ${Array.from({ length: 10 }, () => `<span class="demo-block ${toKind} split-new">${toVal}</span>`).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // 3. 直式同步 HTML
+      const mArr = String(state.mVal).padStart(maxLen, ' ').split('');
+      const sArr = String(state.sVal).padStart(maxLen, ' ').split('');
+      const dArr = String(state.dVal).padStart(maxLen, ' ').split('');
+
+      let mCells = '';
+      let sCells = '';
+      let dCells = '';
+
+      for (let i = 0; i < maxLen; i++) {
+        const placeIdx = maxLen - 1 - i;
+        const mChar = mArr[i];
+        const sChar = sArr[i];
+        const dChar = dArr[i];
+        const mark = state.verticalMarks[placeIdx] || { slashed: false, topNum: null, plus10: false };
+        const isActive = state.activePlace === placeIdx;
+
+        let slashHTML = mark.slashed ? `<span class="borrow-slash">/</span>` : '';
+        let topNumHTML = mark.topNum !== null ? `<span class="borrow-above">${mark.topNum}</span>` : '';
+        let plus10HTML = mark.plus10 ? `<span class="borrow-plus10">+10</span>` : '';
+
+        mCells += `
+          <span class="sync-cell ${isActive ? 'active-col' : ''}">
+            ${slashHTML}${topNumHTML}${plus10HTML}${mChar}
+          </span>
+        `;
+
+        sCells += `
+          <span class="sync-cell ${isActive ? 'active-col' : ''}">
+            ${sChar}
+          </span>
+        `;
+
+        const isVisible = state.diffVisible[placeIdx];
+        dCells += `
+          <span class="sync-cell ${isActive ? 'active-col' : ''}">
+            ${isVisible ? dChar : ''}
+          </span>
+        `;
+      }
+
+      const verticalSyncHTML = `
+        <div class="auto-vertical-card">
+          <h4>直式借位同步</h4>
+          <div class="sync-vertical">
+            <div class="sync-row"><span class="op"></span><div class="sync-digits">${mCells}</div></div>
+            <div class="sync-row"><span class="op">−</span><div class="sync-digits">${sCells}</div></div>
+            <div class="sync-line"></div>
+            <div class="sync-row"><span class="op"></span><div class="sync-digits">${dCells}</div></div>
+          </div>
+          <div class="sync-note">步驟 ${reasonAutoStateIndex + 1} / ${reasonAutoStates.length}</div>
+        </div>
+      `;
+
+      // 4. 組合全體畫面
+      container.innerHTML = `
+        <div class="auto-demo-header">
+          <h3>${state.title}</h3>
+          <div class="auto-demo-controls">
+            <button class="button" id="btnAutoPrev" ${reasonAutoStateIndex === 0 ? 'disabled' : ''}>⏮ 上一步</button>
+            <button class="button primary" id="btnAutoPlayToggle">${isReasonAutoPlaying ? '⏸ 暫停' : '▶ 自動播放'}</button>
+            <button class="button" id="btnAutoNext" ${reasonAutoStateIndex === reasonAutoStates.length - 1 ? 'disabled' : ''}>⏭ 下一步</button>
+            <button class="button" id="btnAutoReplay">🔁 重播本步</button>
+            <button class="button" id="btnAutoReset">🔄 重新開始</button>
+          </div>
+        </div>
+        <div class="auto-explain-card ${state.phase.startsWith('borrow') || state.phase === 'split' ? 'highlight' : ''}">
+          ${state.text}
+        </div>
+        <div class="auto-stage-grid">
+          <div>
+            <div class="auto-place-board">${boardColsHTML}</div>
+            ${splitZoneHTML}
+          </div>
+          ${verticalSyncHTML}
+        </div>
+      `;
+
+      // 綁定內部按鈕控制
+      $('btnAutoPrev').onclick = () => { pauseReasonAuto(); advanceReasonAutoStep(-1); };
+      $('btnAutoNext').onclick = () => { pauseReasonAuto(); advanceReasonAutoStep(1); };
+      $('btnAutoPlayToggle').onclick = () => {
+        if (isReasonAutoPlaying) {
+          pauseReasonAuto();
+        } else {
+          playReasonAuto();
+        }
+      };
+      $('btnAutoReplay').onclick = () => {
+        renderReasonAutoState();
+      };
+      $('btnAutoReset').onclick = () => {
+        pauseReasonAuto();
+        reasonAutoStateIndex = 0;
+        renderReasonAutoState();
+      };
+    }
+
+    function advanceReasonAutoStep(direction = 1) {
+      const nextIdx = reasonAutoStateIndex + direction;
+      if (nextIdx >= 0 && nextIdx < reasonAutoStates.length) {
+        reasonAutoStateIndex = nextIdx;
+        renderReasonAutoState();
+        return true;
+      }
+      return false;
+    }
+
+    function playReasonAuto() {
+      if (isReasonAutoPlaying) return;
+      if (reasonAutoStateIndex >= reasonAutoStates.length - 1) {
+        reasonAutoStateIndex = 0;
+      }
+      isReasonAutoPlaying = true;
+      $('reasonAuto').textContent = '暫停展演';
+      renderReasonAutoState();
+
+      if (reasonAutoTimer) clearInterval(reasonAutoTimer);
+      reasonAutoTimer = setInterval(() => {
+        if (reasonAutoStateIndex < reasonAutoStates.length - 1) {
+          advanceReasonAutoStep(1);
+        } else {
+          pauseReasonAuto();
+        }
+      }, 1000);
+    }
+
+    function pauseReasonAuto() {
+      if (reasonAutoTimer) {
+        clearInterval(reasonAutoTimer);
+        reasonAutoTimer = null;
+      }
+      isReasonAutoPlaying = false;
+      $('reasonAuto').textContent = '自動展演';
+      const playBtn = $('btnAutoPlayToggle');
+      if (playBtn) playBtn.textContent = '▶ 自動播放';
+    }
+
+    function stopReasonAuto() {
+      pauseReasonAuto();
+      const container = $('reasonAutoContainer');
+      if (container) container.hidden = true;
+    }
+
+    $('reasonAuto').onclick = () => {
+      const container = $('reasonAutoContainer');
+      if (!reasonAutoStates.length || container.hidden) {
+        const q = questions[reasonIndex];
+        reasonAutoStates = generateReasonAutoStates(q);
+        reasonAutoStateIndex = 0;
+        playReasonAuto();
+      } else {
+        if (isReasonAutoPlaying) {
+          pauseReasonAuto();
+        } else {
+          playReasonAuto();
+        }
+      }
+    };
+
+    /* ----------------------------------------------------
+       ④ 連續減法與借位還原互動邏輯 (Tab 4 Multi-Sub)
+    ---------------------------------------------------- */
+    const multiSubScenarios = [
+      {
+        title: '情境 1：十位被借 1 又減 5',
+        formula: '□ − 1 − 5 = 6',
+        borrow: 1, sub: 5, diff: 6,
+        ans: 12, boxDigit: 2,
+        desc: '在直式中，個位不夠減向十位借走 1 個十；減數的十位又要拿走 5 個十；最後差的十位留下 6 個十。',
+        combineDesc: '被借走 1 個 ＋ 被減數拿走 5 個 ＝ 一共被拿走 (1 + 5) = 6 個！',
+        reverseDesc: '倒回去思考：剩下的 6 個 ＋ 一共拿走的 6 個 ＝ 原本有 12 個十！',
+        finalNote: '因為 12 個十代表 2 個十（框框填 2）並向百位借 1 個百（10 個十）。'
+      },
+      {
+        title: '情境 2：十位被借 1 又減 7',
+        formula: '□ − 1 − 7 = 3',
+        borrow: 1, sub: 7, diff: 3,
+        ans: 11, boxDigit: 1,
+        desc: '十位先被個位借走 1 個，再被減數減去 7 個，結果差剩下 3 個。',
+        combineDesc: '被借走 1 個 ＋ 減去 7 個 ＝ 一共被拿走 (1 + 7) = 8 個！',
+        reverseDesc: '倒回去思考：剩下的 3 個 ＋ 一共拿走的 8 個 ＝ 原本有 11 個十！',
+        finalNote: '框框填 1，代表十位是 1，向百位借 1 個百換成 10 個十。'
+      },
+      {
+        title: '情境 3：十位被借 1 又減 8',
+        formula: '□ − 1 − 8 = 1',
+        borrow: 1, sub: 8, diff: 1,
+        ans: 10, boxDigit: 0,
+        desc: '十位被個位借走 1 個，又被減數減去 8 個，差只剩下 1 個。',
+        combineDesc: '借走 1 個 ＋ 減去 8 個 ＝ 一共被拿走 (1 + 8) = 9 個！',
+        reverseDesc: '倒回去思考：剩下的 1 個 ＋ 一共拿走的 9 個 ＝ 原本有 10 個十！',
+        finalNote: '框框填 0，代表原十位是 0，向百位借 1 個百。'
+      },
+      {
+        title: '情境 4：百位跨 0 借走兩次',
+        formula: '□ − 1 − 1 = 3',
+        borrow: 1, sub: 1, diff: 3,
+        ans: 5, boxDigit: 5,
+        desc: '百位先被十位借走 1 個百，減數又要減去 1 個百，差留下 3 個百。',
+        combineDesc: '被借走 1 個 ＋ 減去 1 個 ＝ 百位一共被拿走 (1 + 1) = 2 個百！',
+        reverseDesc: '倒回去思考：剩下的 3 個 ＋ 拿走的 2 個 ＝ 原本有 5 個百！',
+        finalNote: '框框填 5，原百位就是 5。'
+      },
+      {
+        title: '情境 5：生活拿糖果情境',
+        formula: '□ − 2 − 3 = 4',
+        borrow: 2, sub: 3, diff: 4,
+        ans: 9, boxDigit: 9,
+        desc: '桌上一盒糖果，小明拿走 2 顆，小華拿走 3 顆，盒子裡還剩 4 顆。',
+        combineDesc: '小明拿 2 顆 ＋ 小華拿 3 顆 ＝ 兩人合起來一共拿走 (2 + 3) = 5 顆！',
+        reverseDesc: '倒回去思考：剩下的 4 顆 ＋ 拿走的 5 顆 ＝ 原本有 9 顆糖果！',
+        finalNote: '框框填 9，原本一共有 9 顆。'
+      }
+    ];
+
+    let multiSubStep = 'normal'; // 'normal', 'combine', 'reverse'
+
+    function renderMultiSub() {
+      const select = $('multiSubSelect');
+      const content = $('multiSubContent');
+      if (!select || !content) return;
+      const idx = Number(select.value);
+      const sc = multiSubScenarios[idx];
+
+      let formulaHTML = '';
+      let explanationHTML = '';
+
+      if (multiSubStep === 'normal') {
+        formulaHTML = `
+          <div class="combine-sub-formula">
+            <span>${sc.formula}</span>
+          </div>
+        `;
+        explanationHTML = `
+          <div class="combine-step-box">
+            <h4>👀 步驟 1：分次拿走的情境</h4>
+            <p>${sc.desc}</p>
+            <div class="block-group-box">
+              <span class="tag-borrow">被借走 ${sc.borrow} 個</span> ➔ 
+              <span class="tag-sub">再減 ${sc.sub} 個</span> ➔ 
+              <span class="tag-combine">最後留下 ${sc.diff} 個</span>
+            </div>
+            <p class="small-note">👉 看到連續兩個減號容易卡住？請點擊上方按鈕<strong>「① 幫我合起來減」</strong>！</p>
+          </div>
+        `;
+      } else if (multiSubStep === 'combine') {
+        formulaHTML = `
+          <div class="combine-sub-formula">
+            <span>□ − <span class="bracket-group">(${sc.borrow} + ${sc.sub})</span> = ${sc.diff}</span>
+            <div style="font-size:18px;color:var(--action);margin-top:6px">⬇ 一共減了 ${sc.borrow + sc.sub} 個 ⬇</div>
+            <span>□ − <strong>${sc.borrow + sc.sub}</strong> = ${sc.diff}</span>
+          </div>
+        `;
+        explanationHTML = `
+          <div class="combine-step-box">
+            <h4>💡 步驟 2：合起來減（括號概念）</h4>
+            <p><strong>${sc.combineDesc}</strong></p>
+            <div class="block-group-box">
+              <span class="tag-combine">拿走的總量 ＝ ${sc.borrow} + ${sc.sub} = ${sc.borrow + sc.sub} 個</span>
+            </div>
+            <p>現在算式簡化成「<strong>□ − ${sc.borrow + sc.sub} = ${sc.diff}</strong>」，是不是清楚多了？</p>
+            <p class="small-note">👉 接著想知道原來是多少？請點擊<strong>「② 倒回去加回來」</strong>！</p>
+          </div>
+        `;
+      } else if (multiSubStep === 'reverse') {
+        formulaHTML = `
+          <div class="combine-sub-formula">
+            <span>□ = ${sc.diff} + <strong>${sc.borrow + sc.sub}</strong> = <span class="tag-combine" style="font-size:26px">${sc.ans}</span></span>
+          </div>
+        `;
+        explanationHTML = `
+          <div class="combine-step-box">
+            <h4>🎯 步驟 3：倒回去加回來（反推被減數）</h4>
+            <p><strong>${sc.reverseDesc}</strong></p>
+            <div class="block-group-box">
+              <span class="tag-combine">原本總量 ＝ 留下的 ${sc.diff} ＋ 拿走的 ${sc.borrow + sc.sub} ＝ ${sc.ans}</span>
+            </div>
+            <p style="color:var(--action);font-weight:bold">${sc.finalNote}</p>
+          </div>
+        `;
+      }
+
+      content.innerHTML = `
+        <article class="combine-sub-card">
+          <h3 style="margin-top:0;color:var(--action)">${sc.title}</h3>
+          ${formulaHTML}
+          <div class="combine-steps-grid">
+            ${explanationHTML}
+          </div>
+        </article>
+      `;
+    }
+
+    $('multiSubSelect').onchange = () => {
+      multiSubStep = 'normal';
+      renderMultiSub();
+    };
+    $('multiSubCombine').onclick = () => {
+      multiSubStep = 'combine';
+      renderMultiSub();
+    };
+    $('multiSubReverse').onclick = () => {
+      multiSubStep = 'reverse';
+      renderMultiSub();
+    };
+    $('multiSubReset').onclick = () => {
+      multiSubStep = 'normal';
+      renderMultiSub();
+    };
+
+    /* ========================================================
+       第 5 階段：交換位值教學模式 (Place-Value Exchange Teaching Mode)
+       ======================================================== */
+    const exchangePlaceKeys = ['ones', 'tens', 'hundreds', 'thousands'];
+    const exchangePlaceTitles = ['個位', '十位', '百位', '千位'];
+    const exchangePlaceUnits = [1, 10, 100, 1000];
+
+    const exchangePresets = {
+      '422-157': { minuend: 422, subtrahend: 157, type: 'multiple-regrouping' },
+      '632-227': { minuend: 632, subtrahend: 227, type: 'borrow-ones' },
+      '721-356': { minuend: 721, subtrahend: 356, type: 'multiple-regrouping' },
+      '402-185': { minuend: 402, subtrahend: 185, type: 'borrow-across-zero' },
+      '810-275': { minuend: 810, subtrahend: 275, type: 'multiple-regrouping' },
+      '764-231': { minuend: 764, subtrahend: 231, type: 'no-regrouping' },
+      '1002-345': { minuend: 1002, subtrahend: 345, type: 'borrow-across-zero' }
+    };
+
+    function generateControlledExchangeProblem(category) {
+      if (category === 'rnd-no-regrouping') {
+        const hM = Math.floor(Math.random() * 6) + 3;
+        const tM = Math.floor(Math.random() * 6) + 3;
+        const oM = Math.floor(Math.random() * 6) + 3;
+        const hS = Math.floor(Math.random() * (hM - 1)) + 1;
+        const tS = Math.floor(Math.random() * tM);
+        const oS = Math.floor(Math.random() * oM);
+        return { minuend: hM * 100 + tM * 10 + oM, subtrahend: hS * 100 + tS * 10 + oS, type: 'no-regrouping' };
+      } else if (category === 'rnd-borrow-ones') {
+        const hM = Math.floor(Math.random() * 5) + 3;
+        const tM = Math.floor(Math.random() * 6) + 3;
+        const oM = Math.floor(Math.random() * 4);
+        const hS = Math.floor(Math.random() * (hM - 1)) + 1;
+        const tS = Math.floor(Math.random() * tM);
+        const oS = oM + Math.floor(Math.random() * 4) + 3;
+        return { minuend: hM * 100 + tM * 10 + oM, subtrahend: hS * 100 + tS * 10 + Math.min(9, oS), type: 'borrow-ones' };
+      } else if (category === 'rnd-borrow-tens') {
+        const hM = Math.floor(Math.random() * 5) + 3;
+        const tM = Math.floor(Math.random() * 3);
+        const oM = Math.floor(Math.random() * 5) + 4;
+        const hS = Math.floor(Math.random() * (hM - 2)) + 1;
+        const tS = tM + Math.floor(Math.random() * 4) + 3;
+        const oS = Math.floor(Math.random() * oM);
+        return { minuend: hM * 100 + tM * 10 + oM, subtrahend: hS * 100 + Math.min(9, tS) * 10 + oS, type: 'borrow-tens' };
+      } else if (category === 'rnd-borrow-across-zero') {
+        const hM = Math.floor(Math.random() * 5) + 3;
+        const tM = 0;
+        const oM = Math.floor(Math.random() * 4) + 1;
+        const hS = Math.floor(Math.random() * (hM - 1)) + 1;
+        const tS = Math.floor(Math.random() * 6) + 3;
+        const oS = oM + Math.floor(Math.random() * 3) + 3;
+        return { minuend: hM * 100 + tM * 10 + oM, subtrahend: hS * 100 + tS * 10 + Math.min(9, oS), type: 'borrow-across-zero' };
+      } else {
+        // rnd-multiple-regrouping
+        const hM = Math.floor(Math.random() * 5) + 3;
+        const tM = Math.floor(Math.random() * 3) + 1;
+        const oM = Math.floor(Math.random() * 4);
+        const hS = Math.floor(Math.random() * (hM - 2)) + 1;
+        const tS = tM + Math.floor(Math.random() * 3) + 3;
+        const oS = oM + Math.floor(Math.random() * 3) + 4;
+        return { minuend: hM * 100 + tM * 10 + oM, subtrahend: hS * 100 + Math.min(9, tS) * 10 + Math.min(9, oS), type: 'multiple-regrouping' };
+      }
+    }
+
+    function buildExchangeScenario(m, s, type) {
+      const maxDigits = Math.max(String(m).length, String(s).length);
+      const digitsM = [];
+      const digitsS = [];
+      let tempM = m, tempS = s;
+      for (let i = 0; i < 4; i++) {
+        digitsM.push(tempM % 10);
+        digitsS.push(tempS % 10);
+        tempM = Math.floor(tempM / 10);
+        tempS = Math.floor(tempS / 10);
+      }
+
+      const counts = [...digitsM];
+      const initialCounts = [...digitsM];
+      const initialSubDigits = [...digitsS];
+      const expectedExchanges = [];
+      const steps = [];
+      const colAnnotations = Array(4).fill(null).map(() => ({ sub1: false, newCount: null, add10: false, newTargetCount: null }));
+
+      for (let p = 0; p < maxDigits; p++) {
+        const placeName = exchangePlaceTitles[p];
+        const subCount = digitsS[p];
+
+        if (counts[p] < subCount) {
+          // 需要交換。檢查高位是否有 0 需要逐級交換
+          let donor = p + 1;
+          while (donor < 4 && counts[donor] === 0) {
+            donor++;
+          }
+          if (donor >= 4) {
+            // 被減數不足
+            break;
+          }
+          // 逐級從 donor 交換下來到 p
+          for (let d = donor; d > p; d--) {
+            const highName = exchangePlaceTitles[d];
+            const lowerName = exchangePlaceTitles[d - 1];
+            const srcBefore = counts[d];
+            const srcAfter = srcBefore - 1;
+            const tgtBefore = counts[d - 1];
+            const tgtAfter = tgtBefore + 10;
+
+            expectedExchanges.push({
+              fromPlace: exchangePlaceKeys[d],
+              toPlace: exchangePlaceKeys[d - 1],
+              sourceBefore: srcBefore,
+              sourceAfter: srcAfter,
+              targetBefore: tgtBefore,
+              targetAfter: tgtAfter
+            });
+
+            if (d === p + 1) {
+              // 直接供應目前位
+              steps.push({
+                type: 'observe',
+                place: p,
+                counts: [...counts],
+                prompt: `【${placeName}】目前有 ${counts[p]} 個，要拿走 ${subCount} 個。夠不夠減？`,
+                canDirectSub: false
+              });
+              steps.push({
+                type: 'decide-exchange',
+                place: p,
+                donorPlace: d,
+                fromTitle: highName,
+                toTitle: placeName,
+                counts: [...counts]
+              });
+            } else {
+              // 跨 0 輔助交換
+              steps.push({
+                type: 'notice-zero',
+                place: p,
+                donorPlace: d,
+                emptyPlace: d - 1,
+                counts: [...counts],
+                prompt: `【${placeName}】不夠減，但相鄰的【${exchangePlaceTitles[d - 1]}】是 0 個，不能直接交換！需要先請【${highName}】交換給【${lowerName}】。`
+              });
+            }
+
+            steps.push({
+              type: 'exchange-anim',
+              fromPlace: d,
+              toPlace: d - 1,
+              srcBefore,
+              srcAfter,
+              tgtBefore,
+              tgtAfter,
+              fromTitle: highName,
+              toTitle: lowerName,
+              countsBefore: [...counts],
+              countsAfter: (() => {
+                const c = [...counts];
+                c[d] = srcAfter;
+                c[d - 1] = tgtAfter;
+                return c;
+              })(),
+              msg: `1 個${highName}可以交換成 10 個${lowerName}。<br>【${highName}】少 1 個（${srcBefore} → ${srcAfter}），【${lowerName}】多 10 個（${tgtBefore} → ${tgtAfter}）。數量沒有變，只是重新分組！`
+            });
+
+            counts[d] = srcAfter;
+            counts[d - 1] = tgtAfter;
+          }
+        } else {
+          // 夠減
+          steps.push({
+            type: 'observe',
+            place: p,
+            counts: [...counts],
+            prompt: `【${placeName}】目前有 ${counts[p]} 個，要拿走 ${subCount} 個。夠不夠減？`,
+            canDirectSub: true
+          });
+          steps.push({
+            type: 'decide-direct',
+            place: p,
+            counts: [...counts],
+            prompt: `【${placeName}】有 ${counts[p]} 個，拿走 ${subCount} 個夠減，直接計算！`
+          });
+        }
+
+        // 進行目前位數填答
+        const minuendDigit = counts[p];
+        const diffDigit = minuendDigit - subCount;
+        steps.push({
+          type: 'solve-digit',
+          place: p,
+          minuendDigit,
+          subCount,
+          expected: diffDigit,
+          counts: [...counts],
+          formula: `${minuendDigit} − ${subCount} = □`
+        });
+
+        // 拿走積木
+        counts[p] = diffDigit;
+        steps.push({
+          type: 'digit-subtracted',
+          place: p,
+          counts: [...counts],
+          diffDigit,
+          subCount,
+          msg: `【${placeName}】拿走 ${subCount} 個積木，剩下 ${diffDigit} 個。`
+        });
+      }
+
+      steps.push({
+        type: 'complete',
+        counts: [...counts],
+        finalDiff: m - s,
+        msg: `🎉 太棒了！全部位值計算完成！<br><strong>${m} − ${s} = ${m - s}</strong>。<br>回顧一下：每次不夠減時，只要記得<strong>「1 個高位換 10 個低位」</strong>，數量完全守恆！`
+      });
+
+      return {
+        id: `${m}-${s}`,
+        minuend: m,
+        subtrahend: s,
+        type,
+        maxDigits,
+        digitsM: initialCounts,
+        digitsS: initialSubDigits,
+        expectedExchanges,
+        steps
+      };
+    }
+
+    const exchangeState = {
+      scenario: null,
+      currentStepIndex: 0,
+      mode: 'student', // 'student' | 'teacher' | 'auto'
+      autoTimer: null,
+      isAutoPlaying: false,
+      userAnswers: {},
+      workbenchState: null,
+      answeredSteps: new Set()
+    };
+
+    function initExchangeApp() {
+      loadSelectedExchangeProblem();
+      setupExchangeEvents();
+    }
+
+    function loadSelectedExchangeProblem() {
+      stopExchangeAuto();
+      const selectVal = $('exchangeProblemSelect').value;
+      let m, s, type;
+      if (exchangePresets[selectVal]) {
+        m = exchangePresets[selectVal].minuend;
+        s = exchangePresets[selectVal].subtrahend;
+        type = exchangePresets[selectVal].type;
+      } else {
+        const generated = generateControlledExchangeProblem(selectVal);
+        m = generated.minuend;
+        s = generated.subtrahend;
+        type = generated.type;
+      }
+      exchangeState.scenario = buildExchangeScenario(m, s, type);
+      exchangeState.currentStepIndex = 0;
+      exchangeState.userAnswers = {};
+      exchangeState.workbenchState = null;
+      exchangeState.answeredSteps.clear();
+      renderExchangeView();
+    }
+
+    function setupExchangeEvents() {
+      $('exchangeProblemSelect').onchange = () => loadSelectedExchangeProblem();
+      $('exchangeRandomBtn').onclick = () => {
+        const val = $('exchangeProblemSelect').value;
+        if (val.startsWith('rnd-')) {
+          loadSelectedExchangeProblem();
+        } else {
+          // 在 7 題中隨機挑一題或切換
+          const keys = Object.keys(exchangePresets);
+          const nextKey = keys[Math.floor(Math.random() * keys.length)];
+          $('exchangeProblemSelect').value = nextKey;
+          loadSelectedExchangeProblem();
+        }
+      };
+      $('exchangeResetBtn').onclick = () => {
+        stopExchangeAuto();
+        exchangeState.currentStepIndex = 0;
+        exchangeState.userAnswers = {};
+        exchangeState.workbenchState = null;
+        exchangeState.answeredSteps.clear();
+        renderExchangeView();
+      };
+      $('exchangeModeSelect').onchange = (e) => {
+        exchangeState.mode = e.target.value;
+        stopExchangeAuto();
+        updateExchangeModeUI();
+        renderExchangeView();
+      };
+      $('exchangeTeacherNextBtn').onclick = () => {
+        advanceExchangeStep();
+      };
+      $('exchangeAutoToggleBtn').onclick = () => {
+        if (exchangeState.isAutoPlaying) {
+          stopExchangeAuto();
+        } else {
+          startExchangeAuto();
+        }
+      };
+    }
+
+    function updateExchangeModeUI() {
+      const mode = exchangeState.mode;
+      const badge = $('exchangeModeBadge');
+      const teacherBtn = $('exchangeTeacherNextBtn');
+      const autoBtn = $('exchangeAutoToggleBtn');
+
+      if (mode === 'student') {
+        badge.textContent = '👤 學生操作模式（學生判斷與填答）';
+        teacherBtn.style.display = 'none';
+        autoBtn.style.display = 'none';
+      } else if (mode === 'teacher') {
+        badge.textContent = '👨‍🏫 老師示範模式（單步微動操作）';
+        teacherBtn.style.display = 'inline-block';
+        autoBtn.style.display = 'none';
+      } else if (mode === 'auto') {
+        badge.textContent = '▶️ 自動播放模式（停在關鍵判斷點）';
+        teacherBtn.style.display = 'none';
+        autoBtn.style.display = 'inline-block';
+        autoBtn.textContent = exchangeState.isAutoPlaying ? '⏸️ 暫停播放' : '▶️ 繼續播放';
+      }
+    }
+
+    function startExchangeAuto() {
+      exchangeState.isAutoPlaying = true;
+      $('exchangeAutoToggleBtn').textContent = '⏸️ 暫停播放';
+      runAutoExchangeLoop();
+    }
+
+    function stopExchangeAuto() {
+      exchangeState.isAutoPlaying = false;
+      if (exchangeState.autoTimer) {
+        clearTimeout(exchangeState.autoTimer);
+        exchangeState.autoTimer = null;
+      }
+      if ($('exchangeAutoToggleBtn')) {
+        $('exchangeAutoToggleBtn').textContent = '▶️ 繼續播放';
+      }
+    }
+
+    function runAutoExchangeLoop() {
+      if (!exchangeState.isAutoPlaying) return;
+      const step = exchangeState.scenario.steps[exchangeState.currentStepIndex];
+      if (!step || step.type === 'complete') {
+        stopExchangeAuto();
+        return;
+      }
+
+      // 如果當前步驟是學生提問或填答點，必須停下來讓學生互動
+      if (step.type === 'observe' || step.type === 'solve-digit') {
+        stopExchangeAuto();
+        return;
+      }
+
+      exchangeState.autoTimer = setTimeout(() => {
+        advanceExchangeStep();
+        runAutoExchangeLoop();
+      }, 1600);
+    }
+
+    function advanceExchangeStep() {
+      if (exchangeState.currentStepIndex < exchangeState.scenario.steps.length - 1) {
+        exchangeState.currentStepIndex++;
+        renderExchangeView();
+      } else {
+        stopExchangeAuto();
+      }
+    }
+
+    function renderExchangeView() {
+      updateExchangeModeUI();
+      const scenario = exchangeState.scenario;
+      const step = scenario.steps[exchangeState.currentStepIndex];
+      const maxDigits = scenario.maxDigits;
+
+      // 1. 決定位值板上各欄位積木數量與高亮狀態
+      let currentCounts = [...scenario.digitsM];
+      if (step.counts) {
+        currentCounts = [...step.counts];
+      } else if (step.countsBefore) {
+        currentCounts = [...step.countsBefore];
+      }
+
+      // 渲染積木位值板
+      const board = $('exchangePlaceBoard');
+      board.innerHTML = '';
+
+      for (let p = 3; p >= 0; p--) {
+        if (p >= maxDigits && currentCounts[p] === 0 && scenario.digitsS[p] === 0) continue;
+
+        const col = document.createElement('div');
+        col.className = 'exchange-col';
+        col.id = `ex-col-${p}`;
+
+        let headExtra = '';
+        if (step.type === 'exchange-anim' && step.fromPlace === p) {
+          col.classList.add('col-source');
+          headExtra = `<span class="exchange-badge-delta badge-sub1">少 1</span>`;
+        } else if (step.type === 'exchange-anim' && step.toPlace === p) {
+          col.classList.add('col-target');
+          headExtra = `<span class="exchange-badge-delta badge-add10">多 10</span>`;
+        } else if ((step.place === p || (step.place !== undefined && step.place === p))) {
+          col.classList.add('col-active');
+        }
+
+        const head = document.createElement('div');
+        head.className = 'exchange-col-head';
+        head.innerHTML = `<span>${exchangePlaceTitles[p]} (${exchangePlaceUnits[p]})</span> ${headExtra}`;
+        col.appendChild(head);
+
+        const blocksContainer = document.createElement('div');
+        blocksContainer.className = 'exchange-col-blocks';
+
+        const count = currentCounts[p];
+        const kind = ['one', 'ten', 'hundred', 'thousand'][p];
+        const shownCount = Math.min(count, 22);
+
+        for (let i = 0; i < shownCount; i++) {
+          const b = document.createElement('span');
+          b.className = `ex-block ${kind}`;
+          b.textContent = exchangePlaceUnits[p];
+          if (step.type === 'exchange-anim' && step.fromPlace === p && i === shownCount - 1) {
+            b.classList.add('selected-exchange');
+          }
+          if (step.type === 'digit-subtracted' && step.place === p && i < step.subCount) {
+            b.classList.add('subtracted-ghost');
+          }
+          blocksContainer.appendChild(b);
+        }
+        if (count > shownCount) {
+          const more = document.createElement('span');
+          more.className = 'small-note';
+          more.style.alignSelf = 'center';
+          more.textContent = `...共 ${count} 個`;
+          blocksContainer.appendChild(more);
+        }
+        col.appendChild(blocksContainer);
+
+        // 減數需求欄
+        const subRow = document.createElement('div');
+        subRow.className = 'exchange-sub-row';
+        subRow.innerHTML = `<div>目前：<strong>${count}</strong> 個 ｜ 需拿走：<strong>${scenario.digitsS[p]}</strong> 個</div>`;
+        col.appendChild(subRow);
+
+        board.appendChild(col);
+      }
+
+      // 2. 渲染交換工作台
+      const wb = $('exchangeWorkbench');
+      const wbTitle = $('exchangeWorkbenchTitle');
+      const wbBody = $('exchangeWorkbenchBody');
+
+      if (step.type === 'exchange-anim') {
+        wb.style.display = 'block';
+        wbTitle.textContent = `${step.fromTitle} 🔄 ${step.toTitle}`;
+        const fromKind = ['one', 'ten', 'hundred', 'thousand'][step.fromPlace];
+        const toKind = ['one', 'ten', 'hundred', 'thousand'][step.toPlace];
+
+        wbBody.innerHTML = `
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <span class="small-note">拿出 1 個【${step.fromTitle}】</span>
+            <span class="ex-block ${fromKind} selected-exchange">${exchangePlaceUnits[step.fromPlace]}</span>
+          </div>
+          <div class="exchange-arrow">➔ 拆成 ➔</div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <span class="small-note">10 個【${step.toTitle}】</span>
+            <div class="exchange-split-bundle">
+              ${Array(10).fill(0).map(() => `<span class="ex-block ${toKind} new-split">${exchangePlaceUnits[step.toPlace]}</span>`).join('')}
+            </div>
+          </div>
+          <div class="exchange-arrow">➔ 送入【${step.toTitle}】欄</div>
+        `;
+      } else {
+        wb.style.display = 'none';
+      }
+
+      // 3. 渲染教學語音/旁白與互動問答
+      renderExchangeInteraction(step);
+
+      // 4. 渲染同步直式
+      renderExchangeSyncVertical(step);
+    }
+
+    function renderExchangeInteraction(step) {
+      const speech = $('exchangeSpeech');
+      const interactive = $('exchangeInteractiveArea');
+      speech.className = 'exchange-speech';
+      speech.innerHTML = '';
+      interactive.innerHTML = '';
+
+      if (step.type === 'observe') {
+        speech.innerHTML = `🧐 <strong>觀察提問：</strong>${step.prompt}`;
+        if (exchangeState.mode === 'student') {
+          const choiceRow = document.createElement('div');
+          choiceRow.className = 'exchange-choice-row';
+          choiceRow.innerHTML = `
+            <button class="button primary" id="exBtnEnough">✅ 夠減，直接減</button>
+            <button class="button primary" id="exBtnNeedExchange" style="background:var(--value);border-color:var(--value)">🔄 不夠減，需要交換</button>
+          `;
+          interactive.appendChild(choiceRow);
+
+          $('exBtnEnough').onclick = () => handleStudentObservation(step, true);
+          $('exBtnNeedExchange').onclick = () => handleStudentObservation(step, false);
+        } else {
+          const info = document.createElement('p');
+          info.className = 'small-note';
+          info.innerHTML = step.canDirectSub ? `（本欄有足夠積木，可直接相減）` : `（積木不足，需要由高位進行交換）`;
+          interactive.appendChild(info);
+        }
+      } else if (step.type === 'notice-zero') {
+        speech.classList.add('speech-warn');
+        speech.innerHTML = `⚠️ <strong>發現 0 了！</strong>${step.prompt}`;
+        if (exchangeState.mode === 'student') {
+          const btn = document.createElement('button');
+          btn.className = 'button primary';
+          btn.textContent = `👉 請【${exchangePlaceTitles[step.donorPlace]}】先交換 1 個給【${exchangePlaceTitles[step.emptyPlace]}】`;
+          btn.onclick = () => advanceExchangeStep();
+          interactive.appendChild(btn);
+        }
+      } else if (step.type === 'decide-exchange') {
+        speech.classList.add('speech-warn');
+        speech.innerHTML = `💡 【${step.toTitle}】需要更多積木！我們要向左邊相鄰的【${step.fromTitle}】交換 1 個。`;
+        if (exchangeState.mode === 'student') {
+          const btn = document.createElement('button');
+          btn.className = 'button primary';
+          btn.style.background = 'var(--value)';
+          btn.style.borderColor = 'var(--value)';
+          btn.textContent = `🔄 按下「交換 1 個${step.fromTitle}」`;
+          btn.onclick = () => advanceExchangeStep();
+          interactive.appendChild(btn);
+        }
+      } else if (step.type === 'decide-direct') {
+        speech.classList.add('speech-success');
+        speech.innerHTML = `👍 ${step.prompt}`;
+        if (exchangeState.mode === 'student') {
+          const btn = document.createElement('button');
+          btn.className = 'button primary';
+          btn.textContent = `👉 開始計算這一欄`;
+          btn.onclick = () => advanceExchangeStep();
+          interactive.appendChild(btn);
+        }
+      } else if (step.type === 'exchange-anim') {
+        speech.classList.add('speech-success');
+        speech.innerHTML = `✨ <strong>交換完成：</strong>${step.msg}`;
+        if (exchangeState.mode === 'student') {
+          const btn = document.createElement('button');
+          btn.className = 'button primary';
+          btn.textContent = `👉 好的，我看懂了，繼續算！`;
+          btn.onclick = () => advanceExchangeStep();
+          interactive.appendChild(btn);
+        }
+      } else if (step.type === 'solve-digit') {
+        const placeName = exchangePlaceTitles[step.place];
+        speech.innerHTML = `📝 <strong>計算【${placeName}】：</strong>現在有 ${step.minuendDigit} 個，拿走 ${step.subCount} 個。`;
+
+        const inputWrap = document.createElement('div');
+        inputWrap.className = 'exchange-input-row';
+        inputWrap.innerHTML = `
+          <span style="font-size:20px;font-weight:700">${step.minuendDigit} − ${step.subCount} ＝ </span>
+          <input type="number" id="exDigitInput" class="exchange-digit-input" min="0" max="9" autocomplete="off" autofocus />
+          <button class="button primary" id="exDigitCheckBtn">確認答案</button>
+          <span id="exDigitFeedback" style="font-weight:bold;margin-left:8px"></span>
+        `;
+        interactive.appendChild(inputWrap);
+
+        const inputEl = $('exDigitInput');
+        const checkBtn = $('exDigitCheckBtn');
+        const fbEl = $('exDigitFeedback');
+
+        const verifyDigit = () => {
+          const val = parseInt(inputEl.value, 10);
+          if (isNaN(val)) {
+            fbEl.textContent = '請先填入數字喔！';
+            fbEl.style.color = 'var(--error)';
+            return;
+          }
+          if (val === step.expected) {
+            fbEl.textContent = '🎉 答對了！';
+            fbEl.style.color = 'var(--correct)';
+            inputEl.disabled = true;
+            checkBtn.disabled = true;
+            exchangeState.userAnswers[step.place] = val;
+            setTimeout(() => {
+              advanceExchangeStep();
+            }, 700);
+          } else {
+            fbEl.textContent = `❌ 不太對喔，${step.minuendDigit} 拿走 ${step.subCount} 個是多少呢？再數數看！`;
+            fbEl.style.color = 'var(--error)';
+            inputEl.select();
+          }
+        };
+
+        checkBtn.onclick = verifyDigit;
+        inputEl.onkeydown = (e) => {
+          if (e.key === 'Enter') verifyDigit();
+        };
+
+        if (exchangeState.mode === 'teacher') {
+          inputEl.value = step.expected;
+        }
+      } else if (step.type === 'digit-subtracted') {
+        speech.classList.add('speech-success');
+        speech.innerHTML = `✅ ${step.msg}`;
+        if (exchangeState.mode === 'student') {
+          const btn = document.createElement('button');
+          btn.className = 'button primary';
+          btn.textContent = `👉 前往下一位`;
+          btn.onclick = () => advanceExchangeStep();
+          interactive.appendChild(btn);
+        }
+      } else if (step.type === 'complete') {
+        speech.classList.add('speech-success');
+        speech.innerHTML = step.msg;
+        const btn = document.createElement('button');
+        btn.className = 'button primary';
+        btn.textContent = `🔄 練習下一題`;
+        btn.onclick = () => $('exchangeRandomBtn').click();
+        interactive.appendChild(btn);
+      }
+    }
+
+    function handleStudentObservation(step, studentSaidEnough) {
+      const speech = $('exchangeSpeech');
+      if (studentSaidEnough === step.canDirectSub) {
+        speech.classList.add('speech-success');
+        if (studentSaidEnough) {
+          speech.innerHTML = `🎯 判斷正確！目前數量足夠拿走，不需交換！`;
+        } else {
+          speech.innerHTML = `🎯 判斷正確！目前的積木不夠拿走，必須進行交換！`;
+        }
+        setTimeout(() => {
+          advanceExchangeStep();
+        }, 800);
+      } else {
+        speech.classList.add('speech-warn');
+        if (studentSaidEnough && !step.canDirectSub) {
+          speech.innerHTML = `🤔 仔細看喔！我們只有 ${step.counts[step.place]} 個，但要拿走 ${exchangeState.scenario.digitsS[step.place]} 個，積木不夠拿走喔！請選「不夠減，需要交換」。`;
+        } else {
+          speech.innerHTML = `🤔 仔細看喔！我們有 ${step.counts[step.place]} 個，只需要拿走 ${exchangeState.scenario.digitsS[step.place]} 個，積木已經夠了，可以直接減！`;
+        }
+      }
+    }
+
+    function renderExchangeSyncVertical(step) {
+      const card = $('exchangeSyncVertical');
+      const scenario = exchangeState.scenario;
+      const maxDigits = scenario.maxDigits;
+
+      // 追蹤截至當前步驟為止，每一位的直式註記（斜線與上方新數）
+      const placeInfo = Array(4).fill(null).map((_, p) => ({
+        origM: scenario.digitsM[p],
+        sub: scenario.digitsS[p],
+        slashed: false,
+        noteTop: null,
+        ansDigit: exchangeState.userAnswers[p] !== undefined ? exchangeState.userAnswers[p] : ''
+      }));
+
+      // 遍歷已走過的所有步驟以累積直式符號
+      for (let i = 0; i <= exchangeState.currentStepIndex; i++) {
+        const s = scenario.steps[i];
+        if (s.type === 'exchange-anim') {
+          placeInfo[s.fromPlace].slashed = true;
+          placeInfo[s.fromPlace].noteTop = s.srcAfter;
+          placeInfo[s.toPlace].slashed = true;
+          placeInfo[s.toPlace].noteTop = s.tgtAfter;
+        }
+      }
+
+      let rowsHTML = `
+        <div class="ex-v-table">
+          <div class="ex-v-row" style="height:22px">
+            <div class="ex-v-digits">
+              ${[3, 2, 1, 0].filter(p => p < maxDigits).map(p => `
+                <div class="ex-v-cell">
+                  ${placeInfo[p].noteTop !== null ? `<span class="v-note-regroup">${placeInfo[p].noteTop}</span>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div class="ex-v-row">
+            <span class="op"></span>
+            <div class="ex-v-digits">
+              ${[3, 2, 1, 0].filter(p => p < maxDigits).map(p => `
+                <div class="ex-v-cell ${step.place === p ? 'v-focus' : ''}">
+                  ${placeInfo[p].origM}
+                  ${placeInfo[p].slashed ? `<span class="v-slash">/</span>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div class="ex-v-row">
+            <span class="op">−</span>
+            <div class="ex-v-digits">
+              ${[3, 2, 1, 0].filter(p => p < maxDigits).map(p => `
+                <div class="ex-v-cell ${step.place === p ? 'v-focus' : ''}">${placeInfo[p].sub}</div>
+              `).join('')}
+            </div>
+          </div>
+          <div class="ex-v-line"></div>
+          <div class="ex-v-row">
+            <span class="op"></span>
+            <div class="ex-v-digits">
+              ${[3, 2, 1, 0].filter(p => p < maxDigits).map(p => `
+                <div class="ex-v-cell" style="color:var(--action)">${placeInfo[p].ansDigit}</div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+
+      card.innerHTML = `
+        <h4>📐 直式同步記錄</h4>
+        ${rowsHTML}
+      `;
+    }
+
+    document.querySelectorAll('.tab').forEach(btn=>btn.onclick=()=>{
+      document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected','false'));
+      btn.setAttribute('aria-selected','true');
+      document.querySelectorAll('.tab-panel').forEach(x=>x.hidden=x.id!==btn.dataset.tab);
+      if(btn.dataset.tab !== 'reasoning') {
+        stopReasonAuto();
+      }
+      if(btn.dataset.tab !== 'exchange') {
+        stopExchangeAuto();
+      }
+      if(btn.dataset.tab === 'multiSub') {
+        renderMultiSub();
+      }
+      if(btn.dataset.tab === 'exchange') {
+        renderExchangeView();
+      }
+    });
+    startBorrow();
+    renderReason();
+    renderMultiSub();
+    initExchangeApp();
+  </script>
+</body>
+</html>

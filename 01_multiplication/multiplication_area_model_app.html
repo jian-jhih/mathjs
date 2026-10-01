@@ -1,0 +1,3382 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>兩位數乘法幾何視覺教學與練習應用</title>
+  <style>
+    /* ==========================================================================
+       1. 全域重設與純色扁平化風格 (Flat Design - 嚴禁漸層)
+       ========================================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-sub: #f1f5f9;
+      --border-color: #cbd5e1;
+      --border-dark: #334155;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      
+      /* 鮮明純色 */
+      --c-blue: #2563eb;
+      --c-blue-light: #dbeafe;
+      --c-green: #16a34a;
+      --c-green-light: #dcfce7;
+      --c-orange: #ea580c;
+      --c-orange-light: #ffedd5;
+      --c-purple: #7c3aed;
+      --c-purple-light: #f3e8ff;
+      --c-rose: #e11d48;
+      --c-rose-light: #ffe4e6;
+      --c-amber: #f59e0b;
+      --c-amber-light: #fef3c7;
+      --c-cyan: #0891b2;
+      --c-cyan-light: #cffafe;
+      
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      touch-action: manipulation;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* 頂部標題與導航頁籤 */
+    header {
+      background-color: #ffffff;
+      border-bottom: 3px solid var(--border-color);
+      padding: 12px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .app-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--c-blue);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tab-btn {
+      background-color: var(--bg-sub);
+      border: 2px solid var(--border-color);
+      color: var(--text-main);
+      font-size: 18px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s, border-color 0.15s;
+    }
+
+    .tab-btn.active {
+      background-color: var(--c-blue);
+      color: #ffffff;
+      border-color: #1d4ed8;
+    }
+
+    /* 主要容器 */
+    main {
+      flex: 1;
+      padding: 16px;
+      margin: 0;
+      width: 100%;
+    }
+
+    .module-content {
+      display: none;
+      background-color: var(--bg-card);
+      border: 3px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      min-height: calc(100vh - 120px);
+    }
+
+    .module-content.active {
+      display: block;
+    }
+
+    /* 共通元件樣式 */
+    .section-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tip-box {
+      background-color: var(--bg-sub);
+      border-left: 6px solid var(--c-blue);
+      padding: 12px 16px;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .control-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 20px;
+      background-color: var(--bg-sub);
+      padding: 14px;
+      border-radius: var(--radius-md);
+      border: 2px solid var(--border-color);
+    }
+
+    .action-btn {
+      background-color: var(--c-blue);
+      color: #ffffff;
+      border: none;
+      font-size: 18px;
+      font-weight: 700;
+      padding: 10px 20px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      touch-action: manipulation;
+    }
+
+    .action-btn:active {
+      filter: brightness(0.9);
+    }
+
+    .action-btn.green { background-color: var(--c-green); }
+    .action-btn.orange { background-color: var(--c-orange); }
+    .action-btn.purple { background-color: var(--c-purple); }
+    .action-btn.rose { background-color: var(--c-rose); }
+    .action-btn.secondary {
+      background-color: #ffffff;
+      color: var(--text-main);
+      border: 2px solid var(--border-dark);
+    }
+
+    .input-label {
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .num-input-box {
+      width: 76px;
+      height: 48px;
+      font-size: 22px;
+      font-weight: 800;
+      text-align: center;
+      border: 3px solid var(--border-dark);
+      border-radius: var(--radius-sm);
+      background-color: #ffffff;
+      cursor: pointer;
+    }
+
+    .num-input-box:focus {
+      outline: none;
+      border-color: var(--c-blue);
+      background-color: var(--c-blue-light);
+    }
+
+    /* 運算大字體看板 */
+    .formula-banner {
+      background-color: #ffffff;
+      border: 3px solid var(--border-dark);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      font-size: 26px;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 0 #cbd5e1;
+    }
+
+    /* ==========================================================================
+       虛擬數字小鍵盤 (iPad 平板友善)
+       ========================================================================== */
+    #virtualKeypadModal {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: #ffffff;
+      border-top: 4px solid var(--border-dark);
+      padding: 16px;
+      display: none;
+      justify-content: center;
+      z-index: 999;
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .keypad-container {
+      width: 100%;
+      max-width: 420px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .key-btn {
+      height: 54px;
+      font-size: 24px;
+      font-weight: 800;
+      background-color: var(--bg-sub);
+      border: 2px solid var(--border-dark);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .key-btn:active {
+      background-color: #cbd5e1;
+    }
+
+    .key-btn.action {
+      background-color: var(--c-blue);
+      color: #ffffff;
+      border-color: #1d4ed8;
+    }
+
+    .key-btn.clear {
+      background-color: var(--c-rose);
+      color: #ffffff;
+      border-color: #be123c;
+    }
+
+    /* ==========================================================================
+       幾何實心長方形與切割網格通用風格
+       ========================================================================== */
+    .solid-geom-shape {
+      background-color: var(--c-blue);
+      border: 3px solid var(--border-dark);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-weight: 800;
+      box-shadow: 0 4px 0 #1e40af;
+      transition: all 0.3s;
+      user-select: none;
+    }
+
+    .solid-geom-shape.green {
+      background-color: var(--c-green);
+      box-shadow: 0 4px 0 #15803d;
+    }
+
+    .cut-line-v {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background-color: #0f172a;
+      z-index: 5;
+    }
+
+    .cut-line-h {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background-color: #0f172a;
+      z-index: 5;
+    }
+
+    /* ==========================================================================
+       模組 1: 交換律與旋轉展示
+       ========================================================================== */
+    .m1-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 600px;
+      background-color: var(--bg-sub);
+      border-radius: var(--radius-lg);
+      border: 3px dashed var(--border-color);
+      padding: 30px 20px;
+      position: relative;
+      overflow-x: auto;
+      overflow-y: visible;
+      width: 100%;
+    }
+
+    .m1-display-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      padding: 10px;
+    }
+
+    .m1-top-dim-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 48px;
+    }
+
+    .m1-main-vis-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+    }
+
+    .m1-rect-slot {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 520px;
+      min-height: 520px;
+      position: relative;
+    }
+
+    .m1-rect-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transform-origin: center center;
+      transition: transform 0.6s cubic-bezier(0.34, 1.3, 0.64, 1);
+    }
+
+    .m1-grid {
+      display: grid;
+      gap: 2px;
+      background-color: var(--border-dark);
+      padding: 3px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* 條塊拆解容器與分區外層容器 (Row 或 Column 模式) */
+    .m1-strip-container {
+      display: flex;
+      gap: 16px;
+      padding: 10px;
+      position: relative;
+      user-select: none;
+      -webkit-user-select: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .m1-strip-container.row-mode {
+      flex-direction: row; /* PC/橫向預設可左右並排兩區或上下彈性排列 */
+      flex-wrap: wrap;
+    }
+
+    .m1-strip-container.col-mode {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    /* 兩個實體分區容器 (第1區 / 第2區) */
+    .m1-zone-block {
+      display: flex;
+      flex-direction: column;
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: var(--radius-md);
+      padding: 12px 10px 10px 10px;
+      position: relative;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+      border: 3px solid var(--border-dark);
+      transition: all 0.25s ease;
+    }
+
+    .m1-zone-block.zone-1 {
+      border-color: var(--c-blue);
+      background-color: #f0f7ff;
+    }
+
+    .m1-zone-block.zone-2 {
+      border-color: var(--c-orange);
+      background-color: #fff7ed;
+    }
+
+    /* 分區頂部標籤列 */
+    .m1-zone-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 2px dashed rgba(0, 0, 0, 0.12);
+      font-family: var(--font-family);
+    }
+
+    .m1-zone-tag {
+      font-size: 13px;
+      font-weight: 900;
+      color: #ffffff;
+      padding: 3px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .m1-zone-tag.zone-1 {
+      background-color: var(--c-blue);
+    }
+
+    .m1-zone-tag.zone-2 {
+      background-color: var(--c-orange);
+    }
+
+    .m1-zone-subtext {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-muted);
+    }
+
+    /* 分區內部條塊清單 - 緊湊排列 */
+    .m1-zone-strips {
+      display: flex;
+      gap: 6px; /* 區塊內條塊間距緊密像一體積木 */
+      align-items: center;
+      justify-content: center;
+    }
+
+    .m1-zone-strips.row-mode {
+      flex-direction: column;
+    }
+
+    .m1-zone-strips.col-mode {
+      flex-direction: row;
+    }
+
+    .m1-strip {
+      display: flex;
+      gap: 1.5px; /* 區內方塊緊密排列 */
+      background-color: var(--border-dark);
+      padding: 2.5px;
+      border-radius: var(--radius-sm);
+      position: relative;
+      cursor: grab;
+      touch-action: none;
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s, filter 0.2s;
+    }
+
+    .m1-strip.row-mode {
+      flex-direction: row;
+    }
+
+    .m1-strip.col-mode {
+      flex-direction: column;
+    }
+
+    .m1-strip:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .m1-strip.dragging {
+      cursor: grabbing;
+      opacity: 0.92;
+      z-index: 100;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.3);
+      filter: brightness(1.15);
+      transition: none; /* 拖曳時即時跟隨無延遲 */
+    }
+
+    .m1-strip.slid-out {
+      filter: brightness(1.1);
+      box-shadow: 0 6px 16px rgba(37,99,235,0.35);
+    }
+
+    .m1-strip.row-mode.slid-out {
+      transform: translateX(35px) !important;
+    }
+
+    .m1-strip.col-mode.slid-out {
+      transform: translateY(-35px) !important;
+    }
+
+    .m1-strip-badge {
+      position: absolute;
+      background-color: var(--border-dark);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 8px;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      z-index: 7;
+    }
+
+    .m1-strip.row-mode .m1-strip-badge {
+      left: -28px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .m1-strip.col-mode .m1-strip-badge {
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .m1-cell.zone-1 {
+      background-color: var(--c-blue);
+    }
+
+    .m1-cell.zone-2 {
+      background-color: var(--c-orange);
+    }
+
+    .m1-cell.zone-1.dot-mode {
+      background-color: var(--c-purple);
+    }
+
+    .m1-cell.zone-2.dot-mode {
+      background-color: #d97706; /* 琥珀橘色圓點 */
+    }
+
+    .m1-cell {
+      background-color: var(--c-blue);
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-weight: 700;
+      transition: border-radius 0.2s, background-color 0.2s;
+    }
+
+    .m1-cell.dot-mode {
+      border-radius: 50%;
+      transform: scale(0.85);
+      background-color: var(--c-purple);
+    }
+
+    .m1-dim-top {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--c-blue);
+      background-color: var(--c-blue-light);
+      padding: 6px 18px;
+      border-radius: var(--radius-sm);
+      border: 3px solid var(--c-blue);
+      z-index: 10;
+      white-space: nowrap;
+      box-shadow: 0 2px 0 var(--c-blue);
+    }
+
+    .m1-dim-left {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--c-purple);
+      background-color: var(--c-purple-light);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 3px solid var(--c-purple);
+      z-index: 10;
+      white-space: nowrap;
+      box-shadow: 0 2px 0 var(--c-purple);
+    }
+
+    .m1-partition-panel {
+      display: none;
+      width: 100%;
+      margin-top: 14px;
+      background-color: #ffffff;
+      border: 3px solid var(--border-dark);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      font-family: var(--font-family);
+    }
+
+    .m1-partition-panel.active {
+      display: block;
+    }
+
+    .m1-partition-title {
+      font-size: 18px;
+      font-weight: 900;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .m1-partition-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .m1-partition-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .m1-partition-card {
+      border: 3px solid var(--border-dark);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      min-height: 88px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .m1-partition-card.zone-1 {
+      background-color: var(--c-blue-light);
+      border-color: var(--c-blue);
+    }
+
+    .m1-partition-card.zone-2 {
+      background-color: var(--c-orange-light);
+      border-color: var(--c-orange);
+    }
+
+    .m1-partition-card .zone-label {
+      font-size: 14px;
+      font-weight: 900;
+      opacity: 0.9;
+    }
+
+    .m1-partition-card .zone-formula {
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.3;
+    }
+
+    .m1-partition-card .zone-detail {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.5;
+      color: var(--text-main);
+    }
+
+    .m1-partition-summary {
+      background-color: var(--bg-sub);
+      border: 2px dashed var(--border-dark);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.6;
+    }
+
+    /* ==========================================================================
+       模組 2: 乘法增減與形狀比較
+       ========================================================================== */
+    .m2-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .m2-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .m2-card {
+      background-color: var(--bg-sub);
+      border: 3px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .m2-card-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .m2-grid-board {
+      display: grid;
+      gap: 3px;
+      background-color: var(--border-dark);
+      padding: 4px;
+      border-radius: var(--radius-sm);
+      margin: 16px 0;
+    }
+
+    .m2-cell {
+      width: 32px;
+      height: 32px;
+      background-color: var(--c-green);
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .m2-cell.added-row {
+      background-color: var(--c-rose) !important;
+      animation: pulse 1s infinite alternate;
+    }
+
+    .m2-cell.added-col {
+      background-color: var(--c-amber) !important;
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(0.96); }
+      to { transform: scale(1.04); }
+    }
+
+    /* ==========================================================================
+       模組 3: 面積模型四宮格拆解
+       ========================================================================== */
+    .m3-container {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 20px;
+    }
+
+    @media (max-width: 960px) {
+      .m3-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .m3-geom-box {
+      background-color: var(--bg-sub);
+      border: 3px solid var(--border-dark);
+      border-radius: var(--radius-lg);
+      padding: 28px 28px 20px 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .area-grid-4 {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      grid-template-rows: 3fr 1fr;
+      width: 100%;
+      max-width: 480px;
+      height: 380px;
+      border: 4px solid var(--border-dark);
+      background-color: #ffffff;
+      position: relative;
+    }
+
+    .area-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 2px solid var(--border-dark);
+      transition: transform 0.1s, filter 0.1s;
+      padding: 8px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .area-block:active {
+      transform: scale(0.98);
+    }
+
+    .area-block.active {
+      outline: 5px solid #000000;
+      z-index: 10;
+      filter: brightness(1.1);
+    }
+
+    /* 四宮格內部的單位方塊網格 */
+    .m3-micro-grid {
+      display: grid;
+      width: 100%;
+      height: 100%;
+      gap: 1px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(15, 23, 42, 0.25);
+      padding: 2px;
+      pointer-events: none;
+    }
+
+    .m3-micro-cell {
+      background-color: rgba(255, 255, 255, 0.45);
+      border-radius: 1px;
+    }
+
+    .area-block-content {
+      position: relative;
+      z-index: 2;
+      background-color: rgba(255, 255, 255, 0.88);
+      padding: 4px 12px;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--border-dark);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .block-b1 { background-color: var(--c-blue-light); }
+    .block-b2 { background-color: var(--c-green-light); }
+    .block-b3 { background-color: var(--c-orange-light); }
+    .block-b4 { background-color: var(--c-purple-light); }
+
+    .block-expr {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .block-val {
+      font-size: 26px;
+      font-weight: 900;
+      margin-top: 4px;
+    }
+
+    .b1-color { color: var(--c-blue); }
+    .b2-color { color: var(--c-green); }
+    .b3-color { color: var(--c-orange); }
+    .b4-color { color: var(--c-purple); }
+
+    .m3-dim-tag {
+      position: absolute;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .m3-sidebar {
+      background-color: #ffffff;
+      border: 3px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .m3-step-item {
+      background-color: var(--bg-sub);
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .m3-step-item.active {
+      border-color: var(--c-blue);
+      background-color: var(--c-blue-light);
+    }
+
+    /* ==========================================================================
+       模組 4: 直式運算原理與視覺聯動
+       ========================================================================== */
+    .m4-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 860px) {
+      .m4-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .m4-geom-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 520px;
+      gap: 10px;
+    }
+
+    .m4-dim-top-tag {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--c-blue-light);
+      border: 3px solid var(--c-blue);
+      color: var(--c-blue);
+      font-size: 18px;
+      font-weight: 800;
+      padding: 6px 16px;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 2px 0 var(--c-blue);
+      width: 100%;
+      text-align: center;
+    }
+
+    /* 統一由 CSS Grid 驅動的兩列布局：左邊標籤與右邊區塊直接共用同一個 Row */
+    .m4-grid-rows-container {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      grid-template-rows: 3fr 1fr; /* JS 動態設定 */
+      gap: 12px;
+      width: 100%;
+      height: 320px;
+      transition: gap 0.4s cubic-bezier(0.34, 1.4, 0.64, 1);
+    }
+
+    /* 物理拉開分離模式：上下兩大區域明顯拉開間隔 */
+    .m4-grid-rows-container.separated {
+      gap: 28px;
+    }
+
+    .m4-step-order-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 900;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+
+    .m4-order-first {
+      background-color: #fef08a;
+      color: #854d0e;
+      border: 2px solid #eab308;
+    }
+
+    .m4-order-second {
+      background-color: #bfdbfe;
+      color: #1e40af;
+      border: 2px solid #3b82f6;
+    }
+
+    .m4-dim-tag-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      border-radius: var(--radius-sm);
+      border: 3px solid;
+      font-size: 15px;
+      font-weight: 800;
+      text-align: center;
+      box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+      width: 100%;
+      height: 100%;
+    }
+
+    .m4-dim-tens {
+      background-color: var(--c-blue-light);
+      border-color: var(--c-blue);
+      color: var(--c-blue);
+    }
+
+    .m4-dim-ones {
+      background-color: var(--c-orange-light);
+      border-color: var(--c-orange);
+      color: var(--c-orange);
+    }
+
+    .m4-geo-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 3px solid var(--border-dark);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      text-align: center;
+      transition: transform 0.1s, filter 0.1s;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .m4-geo-block:active {
+      transform: scale(0.98);
+    }
+
+    .m4-geo-block.active {
+      outline: 5px solid #000000;
+      z-index: 10;
+      filter: brightness(1.1);
+    }
+
+    .m4-micro-grid {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      gap: 2px;
+      padding: 3px;
+      pointer-events: none;
+      opacity: 1;
+      background-color: rgba(15, 23, 42, 0.22);
+    }
+
+    .m4-micro-cell {
+      background-color: rgba(255, 255, 255, 0.68);
+      border: 1px solid rgba(15, 23, 42, 0.18);
+      border-radius: 1px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+    }
+
+    .m4-block-content {
+      position: relative;
+      z-index: 2;
+      background-color: rgba(255, 255, 255, 0.84);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      border: 2px solid rgba(15, 23, 42, 0.65);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .vertical-algo-card {
+      background-color: #ffffff;
+      border: 3px solid var(--border-dark);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      font-family: monospace, monospace;
+    }
+
+    .algo-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: min(100%, 320px);
+      font-size: 32px;
+      font-weight: 900;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background-color 0.2s;
+      gap: 12px;
+    }
+
+    .algo-row.interactive:hover, .algo-row.active {
+      background-color: var(--c-amber-light);
+      outline: 3px solid var(--c-amber);
+    }
+
+    #m4_row_top,
+    #m4_row_mul {
+      justify-content: flex-end;
+    }
+
+    .algo-divider {
+      width: min(100%, 320px);
+      height: 4px;
+      background-color: var(--border-dark);
+      margin: 4px 0;
+    }
+
+    .algo-row-label {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-main);
+      text-align: left;
+      font-family: var(--font-family);
+    }
+
+    .algo-row-value {
+      margin-left: auto;
+    }
+
+    .m4-step-stack {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 16px;
+      font-family: var(--font-family);
+    }
+
+    .m4-split-panel {
+      width: 100%;
+      margin-top: 14px;
+      padding: 14px;
+      border: 3px solid var(--border-dark);
+      border-radius: var(--radius-lg);
+      background-color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .m4-split-panel-title {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .m4-split-eq {
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.4;
+      color: var(--text-main);
+      background-color: var(--bg-sub);
+      border: 2px dashed var(--border-dark);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+    }
+
+    .m4-split-visual {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 10px;
+      align-items: stretch;
+      width: 100%;
+    }
+
+    @media (max-width: 900px) {
+      .m4-split-visual {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .m4-split-block {
+      border: 3px solid var(--border-dark);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 108px;
+      font-family: var(--font-family);
+    }
+
+    .m4-split-block.first {
+      background-color: var(--c-amber-light);
+      border-color: var(--c-amber);
+    }
+
+    .m4-split-block.second {
+      background-color: var(--c-blue-light);
+      border-color: var(--c-blue);
+    }
+
+    .m4-split-block .label {
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .m4-split-block .formula {
+      font-size: 24px;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .m4-split-block .value {
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .m4-split-plus {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      font-weight: 900;
+      color: var(--border-dark);
+      min-width: 36px;
+    }
+
+    @media (max-width: 900px) {
+      .m4-split-plus {
+        min-width: auto;
+        padding: 2px 0;
+      }
+    }
+
+    .m4-step-card {
+      width: 100%;
+      border: 3px solid var(--border-dark);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      background-color: var(--bg-sub);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: transform 0.15s, filter 0.15s, box-shadow 0.15s;
+    }
+
+    .m4-step-card.active {
+      transform: translateY(-2px);
+      filter: brightness(1.02);
+      box-shadow: 0 6px 0 rgba(15, 23, 42, 0.12);
+    }
+
+    .m4-step-card.first {
+      background-color: var(--c-amber-light);
+      border-color: var(--c-amber);
+    }
+
+    .m4-step-card.second {
+      background-color: var(--c-blue-light);
+      border-color: var(--c-blue);
+    }
+
+    .m4-step-card.total {
+      background-color: var(--c-green-light);
+      border-color: var(--c-green);
+    }
+
+    .m4-step-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .m4-step-card-tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .m4-step-card-tag.first {
+      background-color: #ffffff;
+      color: #92400e;
+      border: 2px solid #f59e0b;
+    }
+
+    .m4-step-card-tag.second {
+      background-color: #ffffff;
+      color: #1d4ed8;
+      border: 2px solid #3b82f6;
+    }
+
+    .m4-step-card-tag.total {
+      background-color: #ffffff;
+      color: #15803d;
+      border: 2px solid #16a34a;
+    }
+
+    .m4-step-card-title {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--text-main);
+      line-height: 1.35;
+    }
+
+    .m4-step-card-formula {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--text-main);
+      line-height: 1.2;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .m4-step-card-detail {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-muted);
+      line-height: 1.5;
+      background-color: rgba(255,255,255,0.75);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+    }
+
+    .m4-split-summary {
+      width: 100%;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      background-color: #f8fafc;
+      border: 2px dashed var(--border-dark);
+      font-family: var(--font-family);
+      line-height: 1.6;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .algo-note {
+      font-family: var(--font-family);
+      font-size: 15px;
+      font-weight: 700;
+      margin-top: 14px;
+      padding: 12px;
+      background-color: var(--c-cyan-light);
+      border: 2px solid var(--c-cyan);
+      border-radius: var(--radius-md);
+      width: 100%;
+      line-height: 1.6;
+    }
+
+    .m4-step-breakdown-box {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: #ffffff;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      border: 2px dashed var(--border-dark);
+      font-size: 15px;
+    }
+
+    .m4-split-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 800;
+      margin-right: 4px;
+    }
+
+    /* ==========================================================================
+       模組 5: 闖關練習
+       ========================================================================== */
+    .m5-subtabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .quiz-card {
+      background-color: #ffffff;
+      border: 3px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .quiz-story {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.6;
+      margin-bottom: 16px;
+      background-color: var(--c-amber-light);
+      border: 2px solid var(--c-amber);
+      padding: 16px;
+      border-radius: var(--radius-md);
+    }
+
+    .quiz-grid-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      max-width: 480px;
+      margin: 16px auto;
+    }
+
+    .quiz-input-cell {
+      background-color: var(--bg-sub);
+      border: 3px solid var(--border-dark);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feedback-box {
+      font-size: 22px;
+      font-weight: 800;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      margin-top: 16px;
+      text-align: center;
+      display: none;
+    }
+
+    .feedback-box.correct {
+      background-color: var(--c-green-light);
+      color: var(--c-green);
+      border: 3px solid var(--c-green);
+      display: block;
+    }
+
+    .feedback-box.wrong {
+      background-color: var(--c-rose-light);
+      color: var(--c-rose);
+      border: 3px solid var(--c-rose);
+      display: block;
+    }
+
+    /* 輔助響應式微調 */
+    @media (max-width: 600px) {
+      .app-title { font-size: 20px; }
+      .tab-btn { font-size: 16px; padding: 6px 12px; }
+      .formula-banner { font-size: 20px; }
+      .m1-cell, .m2-cell { width: 24px; height: 24px; font-size: 11px; }
+    }
+  </style>
+<style id="math-flat-theme">
+:root{--paper:#F7F3E8;--ink:#24303A;--action:#2F5D7E;--value:#C58A2B;--correct:#557A5A;--error:#B7523E;--rule:#C9C1B2}
+body{background:var(--paper)!important;color:var(--ink)!important}button,input,select,textarea{border:2px solid var(--rule)!important}button:hover{background:var(--action)!important;color:#fff!important}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--value)!important;outline-offset:2px!important}
+</style></head>
+<body>
+
+  <!-- 頂部標題與頁籤導航 -->
+  <header>
+    <div class="app-title">
+      <span>📐</span> 兩位數乘法幾何視覺工具
+    </div>
+    <div class="nav-tabs" role="tablist">
+      <button class="tab-btn active" onclick="switchTab(1)">1. 交換律與旋轉</button>
+      <button class="tab-btn" onclick="switchTab(2)">2. 乘法增減擴展</button>
+      <button class="tab-btn" onclick="switchTab(3)">3. 四宮格面積拆解</button>
+      <button class="tab-btn" onclick="switchTab(4)">4. 直式運算聯動</button>
+      <button class="tab-btn" onclick="switchTab(5)">5. 闖關練習</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ==========================================================================
+         模組 1：交換律與旋轉展示 (A × B = B × A)
+         ========================================================================== -->
+    <div id="module1" class="module-content active">
+      <h2 class="section-title">🔄 模組 1：乘法交換律與 90° 旋轉展示</h2>
+      <div class="tip-box">
+        💡 <b>數學核心觀念</b>：長方形不管橫著放還是直著放，面積與總數完全一樣（<b>A × B = B × A</b>）。<br>
+        👉 點擊<b>「🥢 拆解橫列 / 直行」</b>會將圖形<b>實體分成「10 的整組」與「餘數」兩個分區積木塊</b>，例如 <b>38 × 11</b> 會拆成 <b>38 × 10 + 38 × 1</b>，讓小朋友能一眼看出「先算 10 的整組、再算餘數、最後加總」的分區處理概念！條塊亦支援拖曳與抽屜點擊滑出。
+      </div>
+
+      <div class="control-panel">
+        <label class="input-label">列數 (A)：
+          <input type="number" id="m1_rows" class="num-input-box" value="4" min="1" max="99" readonly onclick="openKeypad('m1_rows')" oninput="triggerAutoUpdate('m1_rows')" />
+        </label>
+        <span style="font-size: 24px; font-weight: 800;">×</span>
+        <label class="input-label">行數 (B)：
+          <input type="number" id="m1_cols" class="num-input-box" value="5" min="1" max="99" readonly onclick="openKeypad('m1_cols')" oninput="triggerAutoUpdate('m1_cols')" />
+        </label>
+
+        <button class="action-btn purple" onclick="rotateM1()">🔄 一鍵旋轉 90°</button>
+        <button class="action-btn green" id="m1_grid_toggle_btn" onclick="toggleM1Grid()">🔲 顯示 1×1 網格</button>
+        <button class="action-btn rose" id="m1_strip_row_btn" onclick="toggleM1Strips('row')">🥢 拆解橫列</button>
+        <button class="action-btn orange" id="m1_strip_col_btn" onclick="toggleM1Strips('col')">🥢 拆解直行</button>
+        <button class="action-btn secondary" id="m1_partition_btn" onclick="toggleM1Partition()" style="display:none;">🗂 分區明細</button>
+        <button class="action-btn secondary" id="m1_snap_btn" onclick="resetM1Strips()" style="display:none;">🧩 吸附還原</button>
+        <button class="action-btn secondary" id="m1_shape_btn" onclick="toggleM1Shape()" style="display:none;">⚪ 切換圓點陣列</button>
+      </div>
+
+      <div class="formula-banner" id="m1_formula">
+        4 × 5 = 20 (長方形面積 = 20)
+      </div>
+
+      <div class="m1-partition-panel" id="m1_partition_panel">
+        <div class="m1-partition-title">🗂 分區明細</div>
+        <div class="m1-partition-grid">
+          <div class="m1-partition-card zone-1" id="m1_partition_card_1">
+            <div class="zone-label">第 1 區</div>
+            <div class="zone-formula" id="m1_partition_formula_1">--</div>
+            <div class="zone-detail" id="m1_partition_detail_1">先把第一塊區域算清楚。</div>
+          </div>
+          <div class="m1-partition-card zone-2" id="m1_partition_card_2">
+            <div class="zone-label">第 2 區</div>
+            <div class="zone-formula" id="m1_partition_formula_2">--</div>
+            <div class="zone-detail" id="m1_partition_detail_2">再把第二塊區域算清楚。</div>
+          </div>
+        </div>
+        <div class="m1-partition-summary" id="m1_partition_summary">
+          原來拆成條塊之後，還可以再分成兩個區域來看，先算一區，再算另一區，最後加總。
+        </div>
+      </div>
+
+      <div class="m1-stage">
+        <div class="m1-display-container">
+          <!-- 頂部尺寸標籤（獨立上方橫列，絕不被圖形旋轉遮擋） -->
+          <div class="m1-top-dim-row">
+            <div class="m1-dim-top" id="m1_dim_top">5 (行寬)</div>
+          </div>
+          <!-- 主視覺展示區：左側列高標籤 + 正中央旋轉長方形容器 -->
+          <div class="m1-main-vis-row">
+            <div class="m1-dim-left" id="m1_dim_left">4 (列高)</div>
+            <div class="m1-rect-slot">
+              <div class="m1-rect-wrapper" id="m1_wrapper">
+                <div id="m1_content_container"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==========================================================================
+         模組 2：乘法增減與形狀比較擴展 (4×5 拓展為 5×5)
+         ========================================================================== -->
+    <div id="module2" class="module-content">
+      <h2 class="section-title">➕ 模組 2：乘法增減與形狀比較擴展</h2>
+      <div class="tip-box">
+        💡 <b>幾何視覺核心</b>：平常肉眼看到的是一整塊長方形/正方形土地，透過<b>「刀工切割」</b>可以切成小單位方塊，觀察多一排到底增加了多少！
+      </div>
+
+      <div class="control-panel">
+        <label class="input-label">基準列 (A)：
+          <input type="number" id="m2_rows" class="num-input-box" value="4" min="2" max="8" readonly onclick="openKeypad('m2_rows')" />
+        </label>
+        <span style="font-size: 24px; font-weight: 800;">×</span>
+        <label class="input-label">基準行 (B)：
+          <input type="number" id="m2_cols" class="num-input-box" value="5" min="2" max="8" readonly onclick="openKeypad('m2_cols')" />
+        </label>
+        <button class="action-btn" onclick="applyM2Inputs()">✔️ 重設基準</button>
+        <button class="action-btn rose" onclick="m2AddRow()">⬇️ +1 列 (加一排底部)</button>
+        <button class="action-btn orange" onclick="m2AddCol()">➡️ +1 行 (加一排右側)</button>
+        <button class="action-btn green" id="m2_grid_toggle_btn" onclick="toggleM2Grid()">🔪 幾何切割 / 顯示單位網格</button>
+        <button class="action-btn secondary" onclick="m2Reset()">🔄 還原基準</button>
+      </div>
+
+      <div class="formula-banner" id="m2_formula">
+        基準：4 × 5 = 20
+      </div>
+
+      <div class="m2-layout">
+        <div class="m2-card">
+          <div class="m2-card-title">🔍 動態增減演繹</div>
+          <div id="m2_dynamic_container" style="margin: 16px 0; min-height: 180px; display: flex; align-items: center; justify-content: center;"></div>
+          <div style="font-size: 18px; font-weight: 700; color: var(--text-muted);" id="m2_dynamic_desc">
+            目前狀態：基準圖形 (4 × 5)
+          </div>
+        </div>
+
+        <div class="m2-card">
+          <div class="m2-card-title">⚖️ 基準 vs 擴展並排比較</div>
+          <div style="display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap;">
+            <div>
+              <div style="text-align: center; font-weight: 800; font-size: 18px;">4 × 5 = 20</div>
+              <div id="m2_base_compare_container" style="margin: 16px 0;"></div>
+            </div>
+            <div style="font-size: 28px; font-weight: 900; color: var(--c-rose);">➡️</div>
+            <div>
+              <div style="text-align: center; font-weight: 800; font-size: 18px;" id="m2_compare_target_title">5 × 5 = 25</div>
+              <div id="m2_target_compare_container" style="margin: 16px 0;"></div>
+            </div>
+          </div>
+          <div class="tip-box" style="margin-top: 14px; width: 100%; text-align: center;" id="m2_compare_note">
+            差值 Δ = 5 (右圖比左圖多了一整排 5 個小方塊)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==========================================================================
+         模組 3：面積模型四宮格拆解 (如 23 × 45)
+         ========================================================================== -->
+    <div id="module3" class="module-content">
+      <h2 class="section-title">🧱 模組 3：面積模型四宮格拆解</h2>
+      <div class="tip-box">
+        💡 <b>幾何切割觀念</b>：肉眼看是一整塊長方形（23 × 45），將長與寬分別按「十位與個位」切兩刀，整塊長方形就精準切割成 <b>4 個小長方形區域</b>！
+      </div>
+
+      <div class="control-panel">
+        <label class="input-label">被乘數：
+          <input type="number" id="m3_num1" class="num-input-box" value="23" min="11" max="99" readonly onclick="openKeypad('m3_num1')" oninput="triggerAutoUpdate('m3_num1')" />
+        </label>
+        <span style="font-size: 24px; font-weight: 800;">×</span>
+        <label class="input-label">乘數：
+          <input type="number" id="m3_num2" class="num-input-box" value="45" min="11" max="99" readonly onclick="openKeypad('m3_num2')" oninput="triggerAutoUpdate('m3_num2')" />
+        </label>
+        <button class="action-btn rose" id="m3_cut_toggle_btn" onclick="toggleM3Cut()">🔪 執行十位與個位切割 (四宮格)</button>
+        <button class="action-btn orange" id="m3_grid_toggle_btn" onclick="toggleM3Grid()" style="display:none;">🔲 拆為單位小方塊</button>
+        <button class="action-btn green" onclick="autoPlayM3()">▶️ 步驟引導演繹</button>
+      </div>
+
+      <div class="formula-banner" id="m3_formula_banner">
+        23 × 45 = 1035 (完整長方形面積 = 1035)
+      </div>
+
+      <div class="m3-container">
+        <!-- 幾何展示區 -->
+        <div class="m3-geom-box">
+          <div style="position: absolute; top: 4px; left: 60px; font-size: 22px; font-weight: 900; color: var(--c-blue);" id="m3_top_tens">40</div>
+          <div style="position: absolute; top: 4px; right: 40px; font-size: 22px; font-weight: 900; color: var(--c-green);" id="m3_top_ones">5</div>
+          <div style="position: absolute; left: 10px; top: 70px; font-size: 22px; font-weight: 900; color: var(--c-blue);" id="m3_left_tens">20</div>
+          <div style="position: absolute; left: 10px; bottom: 40px; font-size: 22px; font-weight: 900; color: var(--c-orange);" id="m3_left_ones">3</div>
+
+          <div id="m3_visual_wrapper" style="width: 100%; max-width: 480px; height: 380px; display: flex; align-items: center; justify-content: center;">
+            <!-- 動態切換：未切割的完整長方形 OR 四宮格切割網格 -->
+          </div>
+        </div>
+
+        <!-- 側邊解說卡片 -->
+        <div class="m3-sidebar">
+          <div style="font-size: 20px; font-weight: 800;" id="m3_sidebar_title">📋 切割面積明細</div>
+          <div class="m3-step-item" id="m3_card_1" onclick="highlightM3Block(1)">
+            <b class="b1-color">① 藍色區塊：</b><br>
+            <span id="m3_card1_txt">20 × 40 = 800 (十位 × 十位)</span>
+          </div>
+          <div class="m3-step-item" id="m3_card_2" onclick="highlightM3Block(2)">
+            <b class="b2-color">② 綠色區塊：</b><br>
+            <span id="m3_card2_txt">20 × 5 = 100 (十位 × 個位)</span>
+          </div>
+          <div class="m3-step-item" id="m3_card_3" onclick="highlightM3Block(3)">
+            <b class="b3-color">③ 橘色區塊：</b><br>
+            <span id="m3_card3_txt">3 × 40 = 120 (個位 × 十位)</span>
+          </div>
+          <div class="m3-step-item" id="m3_card_4" onclick="highlightM3Block(4)">
+            <b class="b4-color">④ 紫色區塊：</b><br>
+            <span id="m3_card4_txt">3 × 5 = 15 (個位 × 個位)</span>
+          </div>
+          <div class="tip-box" style="margin-top: auto; margin-bottom: 0;">
+            <b>總面積總和</b>：<br>
+            <span id="m3_sum_txt" style="font-size: 22px; color: var(--c-rose); font-weight: 900;">800 + 100 + 120 + 15 = 1035</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==========================================================================
+         模組 4：直式運算原理與視覺聯動 (Step-by-Step)
+         ========================================================================== -->
+    <div id="module4" class="module-content">
+      <h2 class="section-title">📝 模組 4：直式運算原理與視覺聯動</h2>
+      <div class="tip-box">
+        💡 <b>直式小秘密</b>：直式的每一行，剛好對應面積模型中的一整排面積！
+      </div>
+
+      <div class="control-panel">
+        <label class="input-label">被乘數：
+          <input type="number" id="m4_num1" class="num-input-box" value="45" min="11" max="99" readonly onclick="openKeypad('m4_num1')" oninput="triggerAutoUpdate('m4_num1')" />
+        </label>
+        <span style="font-size: 24px; font-weight: 800;">×</span>
+        <label class="input-label">乘數：
+        <input type="number" id="m4_num2" class="num-input-box" value="38" min="11" max="99" readonly onclick="openKeypad('m4_num2')" oninput="triggerAutoUpdate('m4_num2')" />
+        </label>
+        <button class="action-btn purple" id="m4_separate_btn" onclick="toggleM4Separate()">🥢 顯示拆解板塊 (先算個位/後算十位)</button>
+        <button class="action-btn secondary" id="m4_grid_toggle_btn" onclick="toggleM4Grid()">🔲 拆為方塊顯示</button>
+        <button class="action-btn orange" onclick="m4Step(1)">1️⃣ 先算個位層</button>
+        <button class="action-btn" onclick="m4Step(2)">2️⃣ 後算十位層</button>
+        <button class="action-btn green" onclick="m4Step(3)">3️⃣ 兩層加總合體</button>
+      </div>
+
+      <div class="m4-container">
+        <!-- 左側：標準大字體直式 -->
+        <div class="vertical-algo-card">
+          <div style="font-size: 20px; font-weight: 800; margin-bottom: 12px; font-family: var(--font-family);">標準直式算式</div>
+
+          <div class="m4-split-panel" id="m4_split_panel">
+            <div class="m4-split-panel-title">拆解圖示</div>
+            <div class="m4-split-eq" id="m4_split_eq">45 × 38 = 45 × 8 + 45 × 30</div>
+            <div class="m4-split-visual">
+              <div class="m4-split-block first">
+                <div class="label">先算個位</div>
+                <div class="formula" id="m4_split_block_ones_formula">45 × 8</div>
+                <div class="value b3-color" id="m4_split_block_ones_value">360</div>
+              </div>
+              <div class="m4-split-plus">+</div>
+              <div class="m4-split-block second">
+                <div class="label">後算十位</div>
+                <div class="formula" id="m4_split_block_tens_formula">45 × 30</div>
+                <div class="value b1-color" id="m4_split_block_tens_value">1350</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="algo-row" id="m4_row_top">45</div>
+          <div class="algo-row" id="m4_row_mul">× 38</div>
+          <div class="algo-divider"></div>
+          
+          <div class="algo-row interactive" id="m4_row_step1" onclick="m4Step(1)">
+            <span class="algo-row-label">① 先算 45 × 8</span>
+            <span class="algo-row-value">360</span>
+          </div>
+          <div class="algo-row interactive" id="m4_row_step2" onclick="m4Step(2)">
+            <span class="algo-row-label">② 後算 45 × 30</span>
+            <span class="algo-row-value">1350</span>
+          </div>
+          <div class="algo-divider"></div>
+          
+          <div class="algo-row interactive" id="m4_row_sum" onclick="m4Step(3)">
+            <span class="algo-row-label">總和</span>
+            <span class="algo-row-value">1710</span>
+          </div>
+
+          <div class="m4-step-stack" id="m4_step_stack">
+            <div class="m4-step-card first" id="m4_step_card_ones" onclick="m4Step(1)">
+              <div class="m4-step-card-head">
+                <span class="m4-step-card-tag first">① 先算</span>
+                <span class="m4-step-card-title">個位數先出來</span>
+              </div>
+              <div class="m4-step-card-formula">
+                <span id="m4_step_card_ones_formula">45 × 8</span>
+                <span id="m4_step_card_ones_val">360</span>
+              </div>
+              <div class="m4-step-card-detail" id="m4_step_card_ones_detail">
+                因為 38 的個位是 8，所以這一塊先算，直式第一行會先寫它。
+              </div>
+            </div>
+
+            <div class="m4-step-card second" id="m4_step_card_tens" onclick="m4Step(2)">
+              <div class="m4-step-card-head">
+                <span class="m4-step-card-tag second">② 後算</span>
+                <span class="m4-step-card-title">十位數再補上</span>
+              </div>
+              <div class="m4-step-card-formula">
+                <span id="m4_step_card_tens_formula">45 × 30</span>
+                <span id="m4_step_card_tens_val">1350</span>
+              </div>
+              <div class="m4-step-card-detail" id="m4_step_card_tens_detail">
+                因為 3 代表 30，所以這一塊要往左移一格，再寫進直式第二行。
+              </div>
+            </div>
+
+            <div class="m4-step-card total" id="m4_step_card_total" onclick="m4Step(3)">
+              <div class="m4-step-card-head">
+                <span class="m4-step-card-tag total">③ 合起來</span>
+                <span class="m4-step-card-title">把兩塊加總</span>
+              </div>
+              <div class="m4-step-card-formula">
+                <span id="m4_step_card_total_formula">360 + 1350</span>
+                <span id="m4_step_card_total_val">1710</span>
+              </div>
+              <div class="m4-step-card-detail" id="m4_step_card_total_detail">
+                先算個位，再算十位，最後把兩個部分相加，就是完整答案。
+              </div>
+            </div>
+          </div>
+
+          <div class="algo-note" id="m4_algo_note">
+            👉 先看上面的兩個圖示區塊：<b>45 × 8</b> 先算，<b>45 × 30</b> 後算，最後再合起來。
+          </div>
+        </div>
+
+        <!-- 右側：對應幾何面積聯動（標註行數與列數） -->
+        <div class="m3-geom-box" style="padding: 20px;">
+          <div style="font-size: 20px; font-weight: 800; margin-bottom: 10px;">對應幾何面積圖</div>
+          
+          <div class="m4-geom-wrapper">
+            <!-- 頂部：行寬 (被乘數) 標籤，居中橫跨右側幾何長方形 -->
+            <div style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; width: 100%;">
+              <div></div>
+              <div class="m4-dim-top-tag" id="m4_dim_top_lbl">
+                頂部寬度 (行數)：45
+              </div>
+            </div>
+
+            <!-- 主體：兩列兩欄網格，Row 1 專門放十位標籤與十位區塊，Row 2 專門放個位標籤與個位區塊 -->
+            <div class="m4-grid-rows-container" id="m4_grid_rows_container">
+              <!-- Row 1: 上層十位 (列高標籤 + 藍色面積塊) -->
+              <div class="m4-dim-tag-box m4-dim-tens" id="m4_dim_left_tens_lbl">
+                <span>上層高 (列)</span>
+                <b style="font-size: 22px;" id="m4_dim_tens_val">30</b>
+              </div>
+              <div class="m4-geo-block block-b1" id="m4_geo_tens" onclick="m4Step(2)">
+                <span class="block-expr" id="m4_geo_tens_expr">45 × 30</span>
+                <span class="block-val b1-color" id="m4_geo_tens_val">1350</span>
+              </div>
+
+              <!-- Row 2: 下層個位 (列高標籤 + 橘色面積塊) -->
+              <div class="m4-dim-tag-box m4-dim-ones" id="m4_dim_left_ones_lbl">
+                <span>下層高 (列)</span>
+                <b style="font-size: 22px;" id="m4_dim_ones_val">8</b>
+              </div>
+              <div class="m4-geo-block block-b3" id="m4_geo_ones" onclick="m4Step(1)">
+                <span class="block-expr" id="m4_geo_ones_expr">45 × 8</span>
+                <span class="block-val b3-color" id="m4_geo_ones_val">360</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tip-box" style="margin-top: 14px; width: 100%;" id="m4_geo_desc">
+            整塊大長方形面積 = 360 (下層個位) + 1350 (上層十位) = 1710
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==========================================================================
+         模組 5：闖關練習 (純計算 + 生活實務圖形拆解應用題)
+         ========================================================================== -->
+    <div id="module5" class="module-content">
+      <h2 class="section-title">🏆 模組 5：乘法大冒險闖關練習</h2>
+      
+      <div class="m5-subtabs">
+        <button class="action-btn" id="m5_tab_story" onclick="switchM5Mode('story')">🌿 生活情境應用題 (4 大主題)</button>
+        <button class="action-btn secondary" id="m5_tab_calc" onclick="switchM5Mode('calc')">🧮 四宮格計算闖關</button>
+      </div>
+
+      <!-- 模式 A：生活實務情境題 -->
+      <div id="m5_story_section">
+        <div class="control-panel">
+          <label class="input-label">選擇情境主題：</label>
+          <select id="m5_story_select" class="num-input-box" style="width: 260px;" onchange="loadStoryQuestion()">
+            <option value="0">🌿 花園鋪草皮 (24m × 18m)</option>
+            <option value="1">🏫 禮堂排椅子 (35張 × 26排)</option>
+            <option value="2">📦 果園裝箱 (48顆 × 32箱)</option>
+            <option value="3">🎟️ 遊樂園門票 (65元 × 43人)</option>
+          </select>
+          <button class="action-btn purple" onclick="randomStoryQuestion()">🎲 隨機出題</button>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-story" id="m5_story_text">
+            園丁叔叔要在一塊長 24 公尺、寬 18 公尺的長方形土地上鋪滿草皮，請問總共需要多少平方公尺的草皮？
+          </div>
+
+          <div style="text-align: center; font-size: 20px; font-weight: 800; margin-bottom: 10px;">
+            請幫叔叔把長寬拆成「十位」與「個位」，填入 4 塊小面積：
+          </div>
+
+          <div class="quiz-grid-inputs">
+            <div class="quiz-input-cell">
+              <span id="m5_q_b1_label" style="font-weight: 800; color: var(--c-blue);">20 × 10 = ?</span>
+              <input type="number" id="m5_ans_b1" class="num-input-box" style="width: 100px;" readonly onclick="openKeypad('m5_ans_b1')" placeholder="答案" />
+            </div>
+            <div class="quiz-input-cell">
+              <span id="m5_q_b2_label" style="font-weight: 800; color: var(--c-green);">20 × 8 = ?</span>
+              <input type="number" id="m5_ans_b2" class="num-input-box" style="width: 100px;" readonly onclick="openKeypad('m5_ans_b2')" placeholder="答案" />
+            </div>
+            <div class="quiz-input-cell">
+              <span id="m5_q_b3_label" style="font-weight: 800; color: var(--c-orange);">4 × 10 = ?</span>
+              <input type="number" id="m5_ans_b3" class="num-input-box" style="width: 100px;" readonly onclick="openKeypad('m5_ans_b3')" placeholder="答案" />
+            </div>
+            <div class="quiz-input-cell">
+              <span id="m5_q_b4_label" style="font-weight: 800; color: var(--c-purple);">4 × 8 = ?</span>
+              <input type="number" id="m5_ans_b4" class="num-input-box" style="width: 100px;" readonly onclick="openKeypad('m5_ans_b4')" placeholder="答案" />
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-top: 16px;">
+            <label class="input-label" style="justify-content: center;">
+              四塊加總總答案：
+              <input type="number" id="m5_ans_total" class="num-input-box" style="width: 120px;" readonly onclick="openKeypad('m5_ans_total')" placeholder="總和" />
+            </label>
+          </div>
+
+          <div style="display: flex; justify-content: center; gap: 14px; margin-top: 20px;">
+            <button class="action-btn green" style="min-width: 160px;" onclick="checkStoryAnswer()">🎯 提交檢查</button>
+            <button class="action-btn secondary" onclick="showStoryHint()">💡 查看提示圖解</button>
+          </div>
+
+          <div class="feedback-box" id="m5_story_feedback"></div>
+        </div>
+      </div>
+
+      <!-- 模式 B：純計算填空闖關 -->
+      <div id="m5_calc_section" style="display: none;">
+        <div class="quiz-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <span style="font-size: 22px; font-weight: 900;" id="m5_calc_title">題目：34 × 27 = ?</span>
+            <button class="action-btn purple" onclick="generateCalcQuiz()">🔄 換一題</button>
+          </div>
+
+          <div class="tip-box">
+            請計算四宮格各區塊數值並加總出最終答案！
+          </div>
+
+          <div class="quiz-grid-inputs">
+            <div class="quiz-input-cell">
+              <span id="m5_c_b1_lbl" style="font-weight: 800; color: var(--c-blue);">30 × 20</span>
+              <input type="number" id="m5_c_b1" class="num-input-box" style="width: 100px;" readonly onclick="openKeypad('m5_c_b1')" />
+            </div>
+            <div class="quiz-input-cell">
+              <span id="m5_c_b2_lbl" style="font-weight: 800; color: var(--c-green);">30 × 7</span>
+              <input type="number" id="m5_c_b2" class="num-input-box" style="width: 100px;" readonly onclick="openKeypad('m5_c_b2')" />
+            </div>
+            <div class="quiz-input-cell">
+              <span id="m5_c_b3_lbl" style="font-weight: 800; color: var(--c-orange);">4 × 20</span>
+              <input type="number" id="m5_c_b3" class="num-input-box" style="width: 100px;" readonly onclick="openKeypad('m5_c_b3')" />
+            </div>
+            <div class="quiz-input-cell">
+              <span id="m5_c_b4_lbl" style="font-weight: 800; color: var(--c-purple);">4 × 7</span>
+              <input type="number" id="m5_c_b4" class="num-input-box" style="width: 100px;" readonly onclick="openKeypad('m5_c_b4')" />
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-top: 16px;">
+            <label class="input-label" style="justify-content: center;">
+              最終總乘積：
+              <input type="number" id="m5_c_total" class="num-input-box" style="width: 120px;" readonly onclick="openKeypad('m5_c_total')" placeholder="總和" />
+            </label>
+          </div>
+
+          <div style="display: flex; justify-content: center; gap: 14px; margin-top: 20px;">
+            <button class="action-btn green" style="min-width: 160px;" onclick="checkCalcAnswer()">🎯 提交檢查</button>
+          </div>
+
+          <div class="feedback-box" id="m5_calc_feedback"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==========================================================================
+       平板專屬觸控數字小鍵盤 (Bottom Virtual Keypad Modal)
+       ========================================================================== -->
+  <div id="virtualKeypadModal">
+    <div class="keypad-container">
+      <button class="key-btn" onclick="pressKey('1')">1</button>
+      <button class="key-btn" onclick="pressKey('2')">2</button>
+      <button class="key-btn" onclick="pressKey('3')">3</button>
+      <button class="key-btn" onclick="pressKey('4')">4</button>
+      <button class="key-btn" onclick="pressKey('5')">5</button>
+      <button class="key-btn" onclick="pressKey('6')">6</button>
+      <button class="key-btn" onclick="pressKey('7')">7</button>
+      <button class="key-btn" onclick="pressKey('8')">8</button>
+      <button class="key-btn" onclick="pressKey('9')">9</button>
+      <button class="key-btn clear" onclick="pressKey('C')">清除</button>
+      <button class="key-btn" onclick="pressKey('0')">0</button>
+      <button class="key-btn action" onclick="closeKeypad()">完成 ✔️</button>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       核心 JavaScript 邏輯
+       ========================================================================== -->
+  <script>
+    /* ==========================================================================
+       全域變數與輔助工具
+       ========================================================================== */
+    let currentInputId = null;
+
+    function openKeypad(inputId) {
+      currentInputId = inputId;
+      const modal = document.getElementById('virtualKeypadModal');
+      modal.style.display = 'flex';
+      const inputEl = document.getElementById(inputId);
+      inputEl.focus();
+    }
+
+    function triggerAutoUpdate(inputId) {
+      if (!inputId) return;
+      if (inputId === 'm1_rows' || inputId === 'm1_cols') {
+        const r = parseInt(document.getElementById('m1_rows').value);
+        const c = parseInt(document.getElementById('m1_cols').value);
+        if (!isNaN(r) && !isNaN(c) && r >= 1 && c >= 1) {
+          m1Rows = Math.max(1, Math.min(99, r));
+          m1Cols = Math.max(1, Math.min(99, c));
+          m1Angle = 0;
+          renderM1();
+        }
+      } else if (inputId === 'm2_rows' || inputId === 'm2_cols') {
+        const r = parseInt(document.getElementById('m2_rows').value);
+        const c = parseInt(document.getElementById('m2_cols').value);
+        if (!isNaN(r) && !isNaN(c) && r >= 1 && c >= 1) {
+          m2BaseR = r;
+          m2BaseC = c;
+          m2Reset();
+        }
+      } else if (inputId === 'm3_num1' || inputId === 'm3_num2') {
+        const n1 = parseInt(document.getElementById('m3_num1').value);
+        const n2 = parseInt(document.getElementById('m3_num2').value);
+        if (!isNaN(n1) && !isNaN(n2) && n1 >= 1 && n2 >= 1) {
+          m3N1 = n1;
+          m3N2 = n2;
+          renderM3();
+        }
+      } else if (inputId === 'm4_num1' || inputId === 'm4_num2') {
+        const n1 = parseInt(document.getElementById('m4_num1').value);
+        const n2 = parseInt(document.getElementById('m4_num2').value);
+        if (!isNaN(n1) && !isNaN(n2) && n1 >= 1 && n2 >= 1) {
+          m4N1 = n1;
+          m4N2 = n2;
+          renderM4();
+        }
+      }
+    }
+
+    function closeKeypad() {
+      const modal = document.getElementById('virtualKeypadModal');
+      modal.style.display = 'none';
+      const pendingInputId = currentInputId;
+      currentInputId = null;
+      if (pendingInputId) {
+        // 完成輸入時若是模組1，確保回填校正後的合理數字
+        if (pendingInputId === 'm1_rows' || pendingInputId === 'm1_cols') {
+          applyM1Inputs();
+        } else if (pendingInputId === 'm2_rows' || pendingInputId === 'm2_cols') {
+          applyM2Inputs();
+        } else if (pendingInputId === 'm3_num1' || pendingInputId === 'm3_num2') {
+          applyM3Inputs();
+        } else if (pendingInputId === 'm4_num1' || pendingInputId === 'm4_num2') {
+          applyM4Inputs();
+        }
+      }
+    }
+
+    function pressKey(key) {
+      if (!currentInputId) return;
+      const inputEl = document.getElementById(currentInputId);
+      if (key === 'C') {
+        inputEl.value = '';
+      } else {
+        if (inputEl.value.length < 5) {
+          inputEl.value += key;
+        }
+      }
+      triggerAutoUpdate(currentInputId);
+    }
+
+    // 頁籤切換
+    function switchTab(moduleNum) {
+      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx + 1 === moduleNum);
+      });
+      document.querySelectorAll('.module-content').forEach((mod, idx) => {
+        mod.classList.toggle('active', idx + 1 === moduleNum);
+      });
+      closeKeypad();
+
+      // 切換頁籤時，重設為平常肉眼所見的實心幾何形狀（未切割）
+      if (moduleNum === 1) {
+        m1ShowGrid = false;
+        m1IsDot = false;
+        m1Rotated = false;
+        document.getElementById('m1_wrapper').style.transform = 'rotate(0deg)';
+        renderM1();
+      } else if (moduleNum === 2) {
+        m2ShowGrid = false;
+        m2Reset();
+      } else if (moduleNum === 3) {
+        if (m3PlayTimer) {
+          clearInterval(m3PlayTimer);
+          m3PlayTimer = null;
+        }
+        m3IsCut = false;
+        renderM3();
+      }
+    }
+
+    /* ==========================================================================
+       模組 1：交換律與旋轉邏輯 (累積順時針旋轉 90°，紀錄角度並動態切換長寬標籤)
+       ========================================================================== */
+    let m1Rows = 4;
+    let m1Cols = 5;
+    let m1Angle = 0; // 記錄累積旋轉角度：0, 90, 180, 270, 360...
+    let m1ShowGrid = false;
+    let m1IsDot = false;
+    let m1StripMode = null; // null: 完整長方形/網格, 'row': 拆解橫列, 'col': 拆解直行
+    let m1PartitionMode = false;
+
+    function updateM1Dimensions() {
+      // 根據旋轉狀態取得目前的幾何方位：
+      const isOrientationSwapped = (Math.abs(m1Angle) / 90) % 2 === 1;
+      const r = isOrientationSwapped ? m1Cols : m1Rows;
+      const c = isOrientationSwapped ? m1Rows : m1Cols;
+
+      const dimTop = document.getElementById('m1_dim_top');
+      const dimLeft = document.getElementById('m1_dim_left');
+
+      dimTop.innerText = `頂部寬度 (行)：${c}`;
+      dimLeft.innerText = `左側高度 (列)：${r}`;
+    }
+
+    function toggleM1Strips(mode) {
+      if (m1StripMode === mode) {
+        m1StripMode = null;
+        m1PartitionMode = false;
+      } else {
+        m1StripMode = mode;
+        m1ShowGrid = true; // 拆解時強制開啟網格模式
+      }
+      renderM1();
+    }
+
+    function resetM1Strips() {
+      m1StripMode = null;
+      m1PartitionMode = false;
+      renderM1();
+    }
+
+    function toggleM1Partition() {
+      if (!m1StripMode) return;
+      m1PartitionMode = !m1PartitionMode;
+      renderM1();
+    }
+
+    function renderM1() {
+      const container = document.getElementById('m1_content_container');
+      container.innerHTML = '';
+      
+      const isOrientationSwapped = (Math.abs(m1Angle) / 90) % 2 === 1;
+      const r = isOrientationSwapped ? m1Cols : m1Rows;
+      const c = isOrientationSwapped ? m1Rows : m1Cols;
+      const total = m1Rows * m1Cols;
+
+      // 根據最大行列數自適應動態縮放格子尺寸：
+      // 在 4x5 等較小數字時，讓方塊放大至 70~90px，飽滿填滿展示舞台；數字大時則平滑縮小
+      const maxDim = Math.max(m1Rows, m1Cols);
+      let cellSize;
+      if (maxDim <= 4) {
+        cellSize = 90;
+      } else if (maxDim <= 6) {
+        cellSize = 75;
+      } else if (maxDim <= 8) {
+        cellSize = 56;
+      } else if (maxDim <= 10) {
+        cellSize = 46;
+      } else if (maxDim <= 15) {
+        cellSize = 32;
+      } else if (maxDim <= 25) {
+        cellSize = 20;
+      } else {
+        cellSize = Math.max(3.5, 480 / maxDim);
+      }
+
+      const gapSize = cellSize <= 8 ? 0.5 : (cellSize <= 14 ? 1 : 3);
+      const fontSize = Math.max(9, Math.min(22, Math.floor(cellSize * 0.42)));
+
+      // 內層原始圖形尺寸（固定根據原始 rows/cols 建立，透過 transform rotate 實現旋轉）
+      const baseW = m1Cols * cellSize + (m1Cols - 1) * gapSize;
+      const baseH = m1Rows * cellSize + (m1Rows - 1) * gapSize;
+
+      const toggleBtn = document.getElementById('m1_grid_toggle_btn');
+      const shapeBtn = document.getElementById('m1_shape_btn');
+      const snapBtn = document.getElementById('m1_snap_btn');
+      const rowBtn = document.getElementById('m1_strip_row_btn');
+      const colBtn = document.getElementById('m1_strip_col_btn');
+      const partitionBtn = document.getElementById('m1_partition_btn');
+      const partitionPanel = document.getElementById('m1_partition_panel');
+
+      if (snapBtn) snapBtn.style.display = m1StripMode ? 'inline-flex' : 'none';
+      if (rowBtn) rowBtn.classList.toggle('active', m1StripMode === 'row');
+      if (colBtn) colBtn.classList.toggle('active', m1StripMode === 'col');
+      if (partitionBtn) partitionBtn.style.display = m1StripMode ? 'inline-flex' : 'none';
+      if (!m1StripMode) m1PartitionMode = false;
+
+      if (m1StripMode) {
+        // --- 狀態 3：拆解條塊分區模式 (直接以兩大實體分區容器呈現，可自由拖曳 + 點擊抽屜滑出) ---
+        toggleBtn.innerText = '🟦 還原為完整長方形';
+        toggleBtn.className = 'action-btn orange';
+        shapeBtn.style.display = 'inline-flex';
+        shapeBtn.innerText = m1IsDot ? '🔲 切換小方塊' : '⚪ 切換圓點陣列';
+        if (partitionBtn) {
+          partitionBtn.innerText = m1PartitionMode ? '🗂 隱藏分區詳解' : '🗂 分區詳解說明';
+          partitionBtn.className = m1PartitionMode ? 'action-btn orange' : 'action-btn secondary';
+        }
+        if (partitionPanel) {
+          partitionPanel.classList.toggle('active', m1PartitionMode);
+        }
+
+        const stripContainer = document.createElement('div');
+        stripContainer.className = `m1-strip-container ${m1StripMode}-mode`;
+
+        const numStrips = m1StripMode === 'row' ? m1Rows : m1Cols;
+        const itemsPerStrip = m1StripMode === 'row' ? m1Cols : m1Rows;
+        const showCellNumber = total <= 400 && cellSize >= 16;
+        const firstZoneStrips = Math.floor(numStrips / 10) * 10;
+        const secondZoneStrips = numStrips % 10;
+        const firstZoneTotal = firstZoneStrips * itemsPerStrip;
+        const secondZoneTotal = secondZoneStrips * itemsPerStrip;
+        const stripTargetLabel = m1StripMode === 'row' ? '列數' : '行數';
+
+        if (partitionPanel) {
+          const zone1Formula = firstZoneStrips > 0
+            ? `${itemsPerStrip} × ${firstZoneStrips} = ${firstZoneTotal}`
+            : '0';
+          const zone2Formula = secondZoneStrips > 0
+            ? `${itemsPerStrip} × ${secondZoneStrips} = ${secondZoneTotal}`
+            : '0';
+          const zone1Detail = firstZoneStrips > 0
+            ? `先算第 1 區（${stripTargetLabel}的整組 ${firstZoneStrips}）：${numStrips} ÷ 10 = ${Math.floor(numStrips / 10)} 組，這一塊是 ${itemsPerStrip} × ${firstZoneStrips} = ${firstZoneTotal}。`
+            : '目前沒有第 1 區。';
+          const zone2Detail = secondZoneStrips > 0
+            ? `再算第 2 區（${numStrips} % 10 的餘數 ${secondZoneStrips}）：${itemsPerStrip} × ${secondZoneStrips} = ${secondZoneTotal}。`
+            : '目前沒有第 2 區。';
+          document.getElementById('m1_partition_formula_1').innerText = zone1Formula;
+          document.getElementById('m1_partition_formula_2').innerText = zone2Formula;
+          document.getElementById('m1_partition_detail_1').innerText = zone1Detail;
+          document.getElementById('m1_partition_detail_2').innerText = zone2Detail;
+          document.getElementById('m1_partition_summary').innerText = `把 ${numStrips} 拆成 ${Math.floor(numStrips / 10)} 組 10 和餘數 ${secondZoneStrips}，所以先算第 1 區 (${firstZoneTotal})，再算第 2 區 (${secondZoneTotal})，最後加總：${firstZoneTotal} + ${secondZoneTotal} = ${total}！`;
+          document.getElementById('m1_partition_card_1').style.display = firstZoneStrips > 0 ? 'flex' : 'none';
+          document.getElementById('m1_partition_card_2').style.display = secondZoneStrips > 0 ? 'flex' : 'none';
+        }
+
+        // 定義分區資訊
+        const zones = [];
+        if (firstZoneStrips > 0) {
+          zones.push({
+            zoneNum: 1,
+            title: '第 1 區（10 的整組）',
+            startIdx: 0,
+            count: firstZoneStrips,
+            colorClass: 'zone-1',
+            totalVal: firstZoneTotal,
+            formulaText: `${itemsPerStrip} × ${firstZoneStrips} = ${firstZoneTotal}`
+          });
+        }
+        if (secondZoneStrips > 0) {
+          zones.push({
+            zoneNum: 2,
+            title: '第 2 區（10 的餘數）',
+            startIdx: firstZoneStrips,
+            count: secondZoneStrips,
+            colorClass: 'zone-2',
+            totalVal: secondZoneTotal,
+            formulaText: `${itemsPerStrip} × ${secondZoneStrips} = ${secondZoneTotal}`
+          });
+        }
+
+        // 產生實體分區容器
+        zones.forEach(zone => {
+          const zoneBlock = document.createElement('div');
+          zoneBlock.className = `m1-zone-block ${zone.colorClass}`;
+
+          // 分區頂部清晰標籤
+          const zoneHeader = document.createElement('div');
+          zoneHeader.className = 'm1-zone-header';
+          zoneHeader.innerHTML = `
+            <span class="m1-zone-tag ${zone.colorClass}">🏷️ ${zone.title}</span>
+            <span class="m1-zone-subtext">${zone.formulaText}</span>
+          `;
+          zoneBlock.appendChild(zoneHeader);
+
+          // 分區內部條塊清單
+          const zoneStrips = document.createElement('div');
+          zoneStrips.className = `m1-zone-strips ${m1StripMode}-mode`;
+
+          for (let i = 0; i < zone.count; i++) {
+            const s = zone.startIdx + i;
+            const stripEl = document.createElement('div');
+            stripEl.className = `m1-strip ${m1StripMode}-mode`;
+            stripEl.dataset.stripIndex = s;
+
+            // 提示徽章：第幾排
+            const badge = document.createElement('div');
+            badge.className = 'm1-strip-badge';
+            badge.innerText = `第${s + 1}${m1StripMode === 'row' ? '排' : '行'}`;
+            stripEl.appendChild(badge);
+
+            for (let k = 1; k <= itemsPerStrip; k++) {
+              const cell = document.createElement('div');
+              cell.className = `m1-cell ${zone.colorClass}` + (m1IsDot ? ' dot-mode' : '');
+              cell.style.width = `${cellSize}px`;
+              cell.style.height = `${cellSize}px`;
+              cell.style.fontSize = `${fontSize}px`;
+              if (showCellNumber) {
+                const cellNum = m1StripMode === 'row' ? (s * itemsPerStrip + k) : ((k - 1) * numStrips + s + 1);
+                cell.innerText = cellNum;
+              }
+              stripEl.appendChild(cell);
+            }
+
+            // 綁定點擊抽屜式滑出與觸控拖曳
+            initStripInteraction(stripEl, m1StripMode);
+            zoneStrips.appendChild(stripEl);
+          }
+
+          zoneBlock.appendChild(zoneStrips);
+          stripContainer.appendChild(zoneBlock);
+        });
+
+        container.appendChild(stripContainer);
+      } else if (!m1ShowGrid) {
+        // --- 狀態 1：肉眼長方形 (無網格) ---
+        toggleBtn.innerText = '🔪 幾何切割 / 顯示 1×1 網格';
+        toggleBtn.className = 'action-btn green';
+        shapeBtn.style.display = 'none';
+        if (partitionBtn) partitionBtn.style.display = 'none';
+        if (partitionPanel) partitionPanel.classList.remove('active');
+
+        const solidBox = document.createElement('div');
+        solidBox.className = 'solid-geom-shape';
+        solidBox.style.width = `${baseW}px`;
+        solidBox.style.height = `${baseH}px`;
+        solidBox.style.minWidth = '120px';
+        solidBox.style.minHeight = '90px';
+        solidBox.innerHTML = `
+          <div style="font-size: 20px; font-weight: 800;">長方形面積</div>
+          <div style="font-size: 32px; font-weight: 900; margin-top: 4px;">${total}</div>
+          <div style="font-size: 13px; margin-top: 4px; opacity: 0.95;">(點擊上方按鈕切割小方塊)</div>
+        `;
+        container.appendChild(solidBox);
+      } else {
+        // --- 狀態 2：切割後的 1x1 網格 / 圓點 ---
+        toggleBtn.innerText = '🟦 還原為完整長方形 (無網格)';
+        toggleBtn.className = 'action-btn orange';
+        shapeBtn.style.display = 'inline-flex';
+        shapeBtn.innerText = m1IsDot ? '🔲 切換小方塊' : '⚪ 切換圓點陣列';
+        if (partitionBtn) partitionBtn.style.display = 'none';
+        if (partitionPanel) partitionPanel.classList.remove('active');
+
+        const gridBox = document.createElement('div');
+        gridBox.className = 'm1-grid';
+        gridBox.style.width = `${baseW}px`;
+        gridBox.style.height = `${baseH}px`;
+        gridBox.style.gap = `${gapSize}px`;
+        gridBox.style.gridTemplateColumns = `repeat(${m1Cols}, 1fr)`;
+        gridBox.style.gridTemplateRows = `repeat(${m1Rows}, 1fr)`;
+
+        // 若總格數過多(>400 或 格子寬度小於 16px)，隱藏數字以保持清晰與效能
+        const showCellNumber = total <= 400 && cellSize >= 16;
+
+        for (let i = 1; i <= total; i++) {
+          const cell = document.createElement('div');
+          cell.className = 'm1-cell' + (m1IsDot ? ' dot-mode' : '');
+          cell.style.width = `${cellSize}px`;
+          cell.style.height = `${cellSize}px`;
+          cell.style.fontSize = `${fontSize}px`;
+          if (showCellNumber) {
+            cell.innerText = i;
+          }
+          gridBox.appendChild(cell);
+        }
+        container.appendChild(gridBox);
+      }
+
+      // 套用累積角度至 wrapper
+      document.getElementById('m1_wrapper').style.transform = `rotate(${m1Angle}deg)`;
+
+      // 外圍固定頂部與左側尺寸標籤
+      updateM1Dimensions();
+
+      const formula = document.getElementById('m1_formula');
+      if (m1StripMode === 'row') {
+        const firstZoneStrips = Math.floor(m1Rows / 10) * 10;
+        const secondZoneStrips = m1Rows % 10;
+        const z1Val = firstZoneStrips * m1Cols;
+        const z2Val = secondZoneStrips * m1Cols;
+        formula.innerHTML = `🥢 <b>拆解橫列分區</b>：【第 1 區 ${firstZoneStrips}列】${m1Cols} × ${firstZoneStrips} + 【第 2 區 ${secondZoneStrips}列】${m1Cols} × ${secondZoneStrips} = <span style="color:var(--c-rose); font-weight:900;">${total}</span>`;
+      } else if (m1StripMode === 'col') {
+        const firstZoneStrips = Math.floor(m1Cols / 10) * 10;
+        const secondZoneStrips = m1Cols % 10;
+        const z1Val = firstZoneStrips * m1Rows;
+        const z2Val = secondZoneStrips * m1Rows;
+        formula.innerHTML = `🥢 <b>拆解直行分區</b>：【第 1 區 ${firstZoneStrips}行】${m1Rows} × ${firstZoneStrips} + 【第 2 區 ${secondZoneStrips}行】${m1Rows} × ${secondZoneStrips} = <span style="color:var(--c-orange); font-weight:900;">${total}</span>`;
+      } else if (isOrientationSwapped) {
+        formula.innerHTML = `${m1Cols} × ${m1Rows} = ${total} <span style="color:var(--c-purple);"> (目前旋轉了 ${m1Angle % 360}°：${r} 列 × ${c} 行，總面積依然是 ${total}！)</span>`;
+      } else {
+        formula.innerHTML = `${m1Rows} × ${m1Cols} = ${total} (目前方向：${r} 列 × ${c} 行，總面積 = ${total})`;
+      }
+    }
+
+    // 觸控與滑鼠拖曳 + 點擊滑出融合互動
+    function initStripInteraction(stripEl, mode) {
+      let isDragging = false;
+      let startX = 0, startY = 0;
+      let curX = 0, curY = 0;
+      let hasMoved = false;
+
+      function onPointerDown(e) {
+        isDragging = true;
+        hasMoved = false;
+        startX = e.clientX || (e.touches && e.touches[0].clientX);
+        startY = e.clientY || (e.touches && e.touches[0].clientY);
+        stripEl.classList.add('dragging');
+        stripEl.setPointerCapture(e.pointerId);
+      }
+
+      function onPointerMove(e) {
+        if (!isDragging) return;
+        const x = e.clientX || (e.touches && e.touches[0].clientX);
+        const y = e.clientY || (e.touches && e.touches[0].clientY);
+        const dx = x - startX;
+        const dy = y - startY;
+
+        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+          hasMoved = true;
+        }
+
+        if (hasMoved) {
+          stripEl.classList.remove('slid-out');
+          stripEl.style.transform = `translate(${curX + dx}px, ${curY + dy}px)`;
+        }
+      }
+
+      function onPointerUp(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        stripEl.classList.remove('dragging');
+
+        const x = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
+        const y = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
+        const dx = x - startX;
+        const dy = y - startY;
+
+        if (!hasMoved) {
+          // 沒有拖曳 ➔ 視為點擊，切換抽屜式滑出 / 歸位
+          const isSlid = stripEl.classList.toggle('slid-out');
+          curX = 0;
+          curY = 0;
+          if (!isSlid) {
+            stripEl.style.transform = 'translate(0px, 0px)';
+          }
+        } else {
+          curX += dx;
+          curY += dy;
+          // 磁吸檢測：若拖曳回原位附近（小於 35px），自動吸附歸位
+          if (Math.hypot(curX, curY) < 35) {
+            curX = 0;
+            curY = 0;
+            stripEl.style.transform = 'translate(0px, 0px)';
+          }
+        }
+      }
+
+      stripEl.addEventListener('pointerdown', onPointerDown);
+      stripEl.addEventListener('pointermove', onPointerMove);
+      stripEl.addEventListener('pointerup', onPointerUp);
+      stripEl.addEventListener('pointercancel', onPointerUp);
+    }
+
+    function rotateM1() {
+      // 每次點擊順時針累積增加 90 度
+      m1Angle += 90;
+      
+      // 旋轉 wrapper
+      const wrapper = document.getElementById('m1_wrapper');
+      wrapper.style.transform = `rotate(${m1Angle}deg)`;
+
+      // 更新頂部與左側標籤文字
+      updateM1Dimensions();
+
+      // 判斷旋轉後的方位並更新外圍標籤與算式看板
+      const isOrientationSwapped = (Math.abs(m1Angle) / 90) % 2 === 1;
+      const r = isOrientationSwapped ? m1Cols : m1Rows;
+      const c = isOrientationSwapped ? m1Rows : m1Cols;
+      const total = m1Rows * m1Cols;
+
+      const formula = document.getElementById('m1_formula');
+      if (isOrientationSwapped) {
+        formula.innerHTML = `${m1Cols} × ${m1Rows} = ${total} <span style="color:var(--c-purple);"> (一鍵旋轉至 ${m1Angle % 360}°：${r} 列 × ${c} 行，總數依然是 ${total}！)</span>`;
+      } else {
+        formula.innerHTML = `${m1Rows} × ${m1Cols} = ${total} <span style="color:var(--c-blue);"> (一鍵旋轉至 ${m1Angle % 360}°：${r} 列 × ${c} 行，總數依然是 ${total}！)</span>`;
+      }
+    }
+
+    function toggleM1Grid() {
+      m1StripMode = null;
+      m1PartitionMode = false;
+      m1ShowGrid = !m1ShowGrid;
+      renderM1();
+    }
+
+    function applyM1Inputs() {
+      const r = parseInt(document.getElementById('m1_rows').value) || 4;
+      const c = parseInt(document.getElementById('m1_cols').value) || 5;
+      m1Rows = Math.max(1, Math.min(99, r));
+      m1Cols = Math.max(1, Math.min(99, c));
+      document.getElementById('m1_rows').value = m1Rows;
+      document.getElementById('m1_cols').value = m1Cols;
+      m1Angle = 0;
+      m1StripMode = null;
+      m1PartitionMode = false;
+      renderM1();
+      const modal = document.getElementById('virtualKeypadModal');
+      if (modal && modal.style.display === 'flex') {
+        modal.style.display = 'none';
+        currentInputId = null;
+      }
+    }
+
+    function toggleM1Shape() {
+      m1IsDot = !m1IsDot;
+      renderM1();
+    }
+
+    /* ==========================================================================
+       模組 2：乘法增減與形狀比較擴展邏輯 (預設無網格 -> 切割網格)
+       ========================================================================== */
+    let m2BaseR = 4;
+    let m2BaseC = 5;
+    let m2CurrR = 4;
+    let m2CurrC = 5;
+    let m2ShowGrid = false;
+    let m2CompareMode = 'row';
+
+    function renderM2Dynamic() {
+      const container = document.getElementById('m2_dynamic_container');
+      container.innerHTML = '';
+
+      const total = m2CurrR * m2CurrC;
+      const cellSize = 34;
+      const w = m2CurrC * cellSize + (m2CurrC - 1) * 3;
+      const h = m2CurrR * cellSize + (m2CurrR - 1) * 3;
+
+      const toggleBtn = document.getElementById('m2_grid_toggle_btn');
+      if (!m2ShowGrid) {
+        toggleBtn.innerText = '🔪 幾何切割 / 顯示單位網格';
+        toggleBtn.className = 'action-btn green';
+
+        const solid = document.createElement('div');
+        solid.className = 'solid-geom-shape green';
+        solid.style.width = `${w}px`;
+        solid.style.height = `${h}px`;
+        solid.innerHTML = `
+          <div style="font-size: 22px; font-weight: 800;">${m2CurrR} × ${m2CurrC}</div>
+          <div style="font-size: 34px; font-weight: 900; margin-top: 4px;">${total}</div>
+        `;
+        container.appendChild(solid);
+      } else {
+        toggleBtn.innerText = '🟩 隱藏網格 (變回完整圖形)';
+        toggleBtn.className = 'action-btn orange';
+
+        const grid = document.createElement('div');
+        grid.className = 'm2-grid-board';
+        grid.style.gridTemplateColumns = `repeat(${m2CurrC}, 1fr)`;
+
+        for (let r = 0; r < m2CurrR; r++) {
+          for (let c = 0; c < m2CurrC; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'm2-cell';
+            const isAddedRow = r >= m2BaseR;
+            const isAddedCol = c >= m2BaseC;
+
+            if (isAddedRow) cell.classList.add('added-row');
+            if (isAddedCol) cell.classList.add('added-col');
+
+            cell.innerText = (r * m2CurrC) + (c + 1);
+            grid.appendChild(cell);
+          }
+        }
+        container.appendChild(grid);
+      }
+
+      const banner = document.getElementById('m2_formula');
+      const desc = document.getElementById('m2_dynamic_desc');
+
+      if (m2CurrR > m2BaseR) {
+        banner.innerHTML = `${m2BaseR} × ${m2BaseC} + <span style="color:var(--c-rose);">${m2CurrC}</span> = ${m2CurrR} × ${m2CurrC} = ${total}`;
+        desc.innerText = `底部增加了 1 排 (${m2CurrC} 個單位面積)，圖形向下擴展！`;
+      } else if (m2CurrC > m2BaseC) {
+        banner.innerHTML = `${m2BaseR} × ${m2BaseC} + <span style="color:var(--c-amber);">${m2BaseR}</span> = ${m2CurrR} × ${m2CurrC} = ${total}`;
+        desc.innerText = `右側增加了 1 排 (${m2BaseR} 個單位面積)，圖形向右擴展！`;
+      } else {
+        banner.innerHTML = `基準：${m2BaseR} × ${m2BaseC} = ${total}`;
+        desc.innerText = `目前狀態：基準圖形 (${m2BaseR} × ${m2BaseC})`;
+      }
+    }
+
+    function renderM2Compare() {
+      const baseCont = document.getElementById('m2_base_compare_container');
+      const targetCont = document.getElementById('m2_target_compare_container');
+      baseCont.innerHTML = '';
+      targetCont.innerHTML = '';
+
+      const targetR = m2CompareMode === 'row' ? m2BaseR + 1 : m2BaseR;
+      const targetC = m2CompareMode === 'col' ? m2BaseC + 1 : m2BaseC;
+      const cellSize = 30;
+
+      if (!m2ShowGrid) {
+        // 無網格實心比較
+        const baseSolid = document.createElement('div');
+        baseSolid.className = 'solid-geom-shape green';
+        baseSolid.style.width = `${m2BaseC * cellSize}px`;
+        baseSolid.style.height = `${m2BaseR * cellSize}px`;
+        baseSolid.innerHTML = `<span style="font-size:24px; font-weight:900;">${m2BaseR * m2BaseC}</span>`;
+        baseCont.appendChild(baseSolid);
+
+        const targetSolid = document.createElement('div');
+        targetSolid.className = 'solid-geom-shape green';
+        targetSolid.style.width = `${targetC * cellSize}px`;
+        targetSolid.style.height = `${targetR * cellSize}px`;
+        targetSolid.innerHTML = `<span style="font-size:24px; font-weight:900;">${targetR * targetC}</span>`;
+        targetCont.appendChild(targetSolid);
+      } else {
+        // 網格比較
+        const baseGrid = document.createElement('div');
+        baseGrid.className = 'm2-grid-board';
+        baseGrid.style.gridTemplateColumns = `repeat(${m2BaseC}, 1fr)`;
+        for (let i = 1; i <= m2BaseR * m2BaseC; i++) {
+          const cell = document.createElement('div');
+          cell.className = 'm2-cell';
+          cell.innerText = i;
+          baseGrid.appendChild(cell);
+        }
+        baseCont.appendChild(baseGrid);
+
+        const targetGrid = document.createElement('div');
+        targetGrid.className = 'm2-grid-board';
+        targetGrid.style.gridTemplateColumns = `repeat(${targetC}, 1fr)`;
+        for (let r = 0; r < targetR; r++) {
+          for (let c = 0; c < targetC; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'm2-cell';
+            if (r >= m2BaseR) cell.classList.add('added-row');
+            cell.innerText = (r * targetC) + (c + 1);
+            targetGrid.appendChild(cell);
+          }
+        }
+        targetCont.appendChild(targetGrid);
+      }
+
+      document.getElementById('m2_compare_target_title').innerText = `${targetR} × ${targetC} = ${targetR * targetC}`;
+      if (m2CompareMode === 'row') {
+        document.getElementById('m2_compare_note').innerHTML = `差值 Δ = ${targetC} (下方多了一整排 ${targetC} 個方塊面積)`;
+      } else {
+        document.getElementById('m2_compare_note').innerHTML = `差值 Δ = ${targetR} (右側多了一整列 ${targetR} 個方塊面積)`;
+      }
+    }
+
+    function toggleM2Grid() {
+      m2ShowGrid = !m2ShowGrid;
+      renderM2Dynamic();
+      renderM2Compare();
+    }
+
+    function applyM2Inputs() {
+      m2BaseR = parseInt(document.getElementById('m2_rows').value) || 4;
+      m2BaseC = parseInt(document.getElementById('m2_cols').value) || 5;
+      m2Reset();
+      const modal = document.getElementById('virtualKeypadModal');
+      if (modal && modal.style.display === 'flex') {
+        modal.style.display = 'none';
+        currentInputId = null;
+      }
+    }
+
+    function m2AddRow() {
+      m2CurrR = m2BaseR + 1;
+      m2CurrC = m2BaseC;
+      m2CompareMode = 'row';
+      renderM2Dynamic();
+      renderM2Compare();
+    }
+
+    function m2AddCol() {
+      m2CurrR = m2BaseR;
+      m2CurrC = m2BaseC + 1;
+      m2CompareMode = 'col';
+      renderM2Dynamic();
+      renderM2Compare();
+    }
+
+    function m2Reset() {
+      m2CurrR = m2BaseR;
+      m2CurrC = m2BaseC;
+      m2CompareMode = 'row';
+      renderM2Dynamic();
+      renderM2Compare();
+    }
+
+    /* ==========================================================================
+       模組 3：四宮格面積模型邏輯 (預設肉眼完整大長方形 -> 刀工切割四宮格 -> 拆為小方塊)
+       ========================================================================== */
+    let m3N1 = 23;
+    let m3N2 = 45;
+    let m3IsCut = false;
+    let m3ShowGrid = false;
+
+    function renderM3() {
+      const tens1 = Math.floor(m3N1 / 10) * 10;
+      const ones1 = m3N1 % 10;
+      const tens2 = Math.floor(m3N2 / 10) * 10;
+      const ones2 = m3N2 % 10;
+
+      const v1 = tens1 * tens2;
+      const v2 = tens1 * ones2;
+      const v3 = ones1 * tens2;
+      const v4 = ones1 * ones2;
+      const total = v1 + v2 + v3 + v4;
+
+      document.getElementById('m3_top_tens').innerText = tens2;
+      document.getElementById('m3_top_ones').innerText = ones2;
+      document.getElementById('m3_left_tens').innerText = tens1;
+      document.getElementById('m3_left_ones').innerText = ones1;
+
+      const wrapper = document.getElementById('m3_visual_wrapper');
+      wrapper.innerHTML = '';
+
+      const cutBtn = document.getElementById('m3_cut_toggle_btn');
+      const gridBtn = document.getElementById('m3_grid_toggle_btn');
+
+      if (!m3IsCut) {
+        // --- 狀態 1：平常肉眼看到的一整塊完整大長方形 ---
+        cutBtn.innerText = '🔪 執行十位與個位切割 (拆成四宮格)';
+        cutBtn.className = 'action-btn rose';
+        if (gridBtn) gridBtn.style.display = 'none';
+
+        document.getElementById('m3_formula_banner').innerHTML = `
+          ${m3N1} × ${m3N2} = <b>${total}</b> (肉眼所見完整大長方形，面積 = ${total})
+        `;
+        document.getElementById('m3_sidebar_title').innerText = '📋 尚未切割 (完整長方形)';
+        document.getElementById('m3_card1_txt').innerText = `長邊 = ${tens2} + ${ones2} = ${m3N2}`;
+        document.getElementById('m3_card2_txt').innerText = `寬邊 = ${tens1} + ${ones1} = ${m3N1}`;
+        document.getElementById('m3_card3_txt').innerText = `點擊「🔪 執行切割」將它切分成 4 塊小面積！`;
+        document.getElementById('m3_card4_txt').innerText = `四塊小面積加總剛好等於整塊總面積！`;
+        document.getElementById('m3_sum_txt').innerText = `完整大長方形面積 = ${total}`;
+
+        const solid = document.createElement('div');
+        solid.className = 'solid-geom-shape';
+        solid.style.width = '100%';
+        solid.style.height = '100%';
+        solid.style.fontSize = '26px';
+        solid.innerHTML = `
+          <div style="font-size: 26px; font-weight: 800;">完整大長方形 (${m3N1} × ${m3N2})</div>
+          <div style="font-size: 46px; font-weight: 900; margin-top: 10px;">${total}</div>
+          <div style="font-size: 16px; margin-top: 8px; opacity: 0.9;">👉 點擊上方「🔪 執行切割」切出四宮格</div>
+        `;
+        wrapper.appendChild(solid);
+      } else {
+        // --- 狀態 2 & 3：切割後的四宮格面積模型 (可切換小方塊網格) ---
+        cutBtn.innerText = '🟦 還原為完整大長方形 (取消切割)';
+        cutBtn.className = 'action-btn orange';
+        
+        if (gridBtn) {
+          gridBtn.style.display = 'inline-flex';
+          gridBtn.innerText = m3ShowGrid ? '🔲 隱藏小方塊 (純顏色區塊)' : '🔲 拆為單位小方塊 (透視網格)';
+          gridBtn.className = m3ShowGrid ? 'action-btn orange' : 'action-btn green';
+        }
+
+        document.getElementById('m3_formula_banner').innerHTML = `
+          ${m3N1} × ${m3N2} = (${tens1} + ${ones1}) × (${tens2} + ${ones2}) = ${v1} + ${v2} + ${v3} + ${v4} = <b>${total}</b>
+        `;
+        document.getElementById('m3_sidebar_title').innerText = '📋 四塊切割面積明細 (點擊查看)';
+        document.getElementById('m3_card1_txt').innerText = `${tens1} × ${tens2} = ${v1} (十位 × 十位)`;
+        document.getElementById('m3_card2_txt').innerText = `${tens1} × ${ones2} = ${v2} (十位 × 個位)`;
+        document.getElementById('m3_card3_txt').innerText = `${ones1} × ${tens2} = ${v3} (個位 × 十位)`;
+        document.getElementById('m3_card4_txt').innerText = `${ones1} × ${ones2} = ${v4} (個位 × 個位)`;
+        document.getElementById('m3_sum_txt').innerText = `${v1} + ${v2} + ${v3} + ${v4} = ${total}`;
+
+        const grid4 = document.createElement('div');
+        grid4.className = 'area-grid-4';
+        
+        // 依據十位與個位的實際數值比例分配 grid 欄寬與列高比例
+        const colRatio1 = Math.max(1, tens2 || 1);
+        const colRatio2 = Math.max(1, ones2 || 1);
+        const rowRatio1 = Math.max(1, tens1 || 1);
+        const rowRatio2 = Math.max(1, ones1 || 1);
+        grid4.style.gridTemplateColumns = `${colRatio1}fr ${colRatio2}fr`;
+        grid4.style.gridTemplateRows = `${rowRatio1}fr ${rowRatio2}fr`;
+
+        // 輔助函數：建立帶有可選微型方塊的區塊
+        function createM3Block(id, blockClass, rows, cols, expr, val, colorClass, blockNum) {
+          const b = document.createElement('div');
+          b.className = `area-block ${blockClass}`;
+          b.id = id;
+          b.onclick = () => highlightM3Block(blockNum);
+
+          if (m3ShowGrid && rows > 0 && cols > 0) {
+            const microGrid = document.createElement('div');
+            microGrid.className = 'm3-micro-grid';
+            microGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+            microGrid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+            
+            // 安全限制：格數若極多 (>2500) 則適度降採樣或直接用純網格紋理保證極速流暢
+            const cellTotal = rows * cols;
+            if (cellTotal <= 1600) {
+              for (let i = 0; i < cellTotal; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'm3-micro-cell';
+                microGrid.appendChild(cell);
+              }
+            }
+            b.appendChild(microGrid);
+          }
+
+          const content = document.createElement('div');
+          content.className = 'area-block-content';
+          content.innerHTML = `
+            <span class="block-expr">${expr}</span>
+            <span class="block-val ${colorClass}">${val}</span>
+          `;
+          b.appendChild(content);
+          return b;
+        }
+
+        grid4.appendChild(createM3Block('m3_b1', 'block-b1', tens1, tens2, `${tens1} × ${tens2}`, v1, 'b1-color', 1));
+        grid4.appendChild(createM3Block('m3_b2', 'block-b2', tens1, ones2, `${tens1} × ${ones2}`, v2, 'b2-color', 2));
+        grid4.appendChild(createM3Block('m3_b3', 'block-b3', ones1, tens2, `${ones1} × ${tens2}`, v3, 'b3-color', 3));
+        grid4.appendChild(createM3Block('m3_b4', 'block-b4', ones1, ones2, `${ones1} × ${ones2}`, v4, 'b4-color', 4));
+
+        wrapper.appendChild(grid4);
+      }
+    }
+
+    function toggleM3Cut() {
+      m3IsCut = !m3IsCut;
+      renderM3();
+    }
+
+    function toggleM3Grid() {
+      m3ShowGrid = !m3ShowGrid;
+      renderM3();
+    }
+
+    function applyM3Inputs() {
+      m3N1 = parseInt(document.getElementById('m3_num1').value) || 23;
+      m3N2 = parseInt(document.getElementById('m3_num2').value) || 45;
+      m3IsCut = false;
+      m3ShowGrid = false;
+      renderM3();
+      const modal = document.getElementById('virtualKeypadModal');
+      if (modal && modal.style.display === 'flex') {
+        modal.style.display = 'none';
+        currentInputId = null;
+      }
+    }
+
+    function highlightM3Block(blockNum) {
+      if (!m3IsCut) {
+        m3IsCut = true;
+        renderM3();
+      }
+      for (let i = 1; i <= 4; i++) {
+        const b = document.getElementById(`m3_b${i}`);
+        const c = document.getElementById(`m3_card_${i}`);
+        if (b) b.classList.toggle('active', i === blockNum);
+        if (c) {
+          c.classList.toggle('active', i === blockNum);
+          if (i === blockNum) {
+            c.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }
+      }
+    }
+
+    let m3PlayTimer = null;
+    function autoPlayM3() {
+      if (m3PlayTimer) {
+        clearInterval(m3PlayTimer);
+        m3PlayTimer = null;
+      }
+      if (!m3IsCut) {
+        m3IsCut = true;
+        renderM3();
+      }
+      let step = 1;
+      highlightM3Block(step);
+      m3PlayTimer = setInterval(() => {
+        step++;
+        if (step > 4) {
+          clearInterval(m3PlayTimer);
+          m3PlayTimer = null;
+          // 全部完成後稍微延遲取消高亮或保持總和展示
+          return;
+        }
+        highlightM3Block(step);
+      }, 1300);
+    }
+
+    /* ==========================================================================
+       模組 4：直式運算聯動邏輯
+       ========================================================================== */
+    let m4N1 = 45;
+    let m4N2 = 38;
+    let m4ShowGrid = false;
+    let m4IsSeparated = false;
+
+    function toggleM4Separate() {
+      m4IsSeparated = !m4IsSeparated;
+      renderM4();
+    }
+
+    function renderM4GeoBlock(blockId, rows, cols, expr, val, colorClass, isUpperTens) {
+      const block = document.getElementById(blockId);
+      if (!block) return;
+
+      const tens1 = Math.floor(m4N1 / 10) * 10;
+      const ones1 = m4N1 % 10;
+      const subVal1 = tens1 * rows;
+      const subVal2 = ones1 * rows;
+      const orderBadge = isUpperTens 
+        ? `<span class="m4-step-order-badge m4-order-second">② 後算十位區 (×${rows})</span>`
+        : `<span class="m4-step-order-badge m4-order-first">① 先算個位區 (×${rows})</span>`;
+
+      if (!m4ShowGrid || rows <= 0 || cols <= 0) {
+        block.innerHTML = `
+          ${m4IsSeparated ? orderBadge : ''}
+          <span class="block-expr" id="${blockId}_expr">${expr}</span>
+          <span class="block-val ${colorClass}" id="${blockId}_val">${val}</span>
+          <span style="font-size: 13px; font-weight: 700; color: var(--text-muted); margin-top: 4px;">
+            (${tens1}×${rows}=${subVal1} ＋ ${ones1}×${rows}=${subVal2})
+          </span>
+        `;
+        return;
+      }
+
+      const cellTotal = rows * cols;
+      const microGrid = document.createElement('div');
+      microGrid.className = 'm4-micro-grid';
+      microGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      microGrid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+
+      // 限制大量格數渲染保護效能（小於等於 2400 格生成真實 DOM 格子）
+      if (cellTotal <= 2400) {
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'm4-micro-cell';
+            // 將前 tens1 欄（十位區）與後 ones1 欄（個位區）區分色彩微光
+            if (c < tens1) {
+              cell.style.backgroundColor = isUpperTens ? 'rgba(59, 130, 246, 0.55)' : 'rgba(249, 115, 22, 0.45)';
+            } else {
+              cell.style.backgroundColor = isUpperTens ? 'rgba(99, 102, 241, 0.65)' : 'rgba(236, 72, 153, 0.55)';
+            }
+            microGrid.appendChild(cell);
+          }
+        }
+      }
+
+      block.innerHTML = '';
+      block.appendChild(microGrid);
+
+      const content = document.createElement('div');
+      content.className = 'm4-block-content';
+      content.innerHTML = `
+        ${m4IsSeparated ? orderBadge : ''}
+        <span class="block-expr" id="${blockId}_expr">${expr}</span>
+        <span class="block-val ${colorClass}" id="${blockId}_val">${val}</span>
+        <div style="font-size: 13px; font-weight: 800; color: #1e293b; background: rgba(255,255,255,0.9); padding: 2px 6px; border-radius: 4px; border: 1px solid #94a3b8; margin-top: 2px;">
+          拆解：${tens1}×${rows}=${subVal1} ＋ ${ones1}×${rows}=${subVal2}
+        </div>
+      `;
+      block.appendChild(content);
+    }
+
+    function toggleM4Grid() {
+      m4ShowGrid = !m4ShowGrid;
+      renderM4();
+    }
+
+    function renderM4() {
+      const ones2 = m4N2 % 10;
+      const tens2 = Math.floor(m4N2 / 10) * 10;
+
+      const step1Val = m4N1 * ones2;
+      const step2Val = m4N1 * tens2;
+      const total = step1Val + step2Val;
+      const tens2Digit = Math.floor(m4N2 / 10);
+
+      document.getElementById('m4_row_top').innerText = m4N1;
+      document.getElementById('m4_row_mul').innerText = `× ${m4N2}`;
+      document.getElementById('m4_row_step1').innerHTML = `
+        <span class="algo-row-label">① 先算 ${m4N1} × ${ones2}</span>
+        <span class="algo-row-value">${step1Val}</span>
+      `;
+      document.getElementById('m4_row_step2').innerHTML = `
+        <span class="algo-row-label">② 後算 ${m4N1} × ${tens2}</span>
+        <span class="algo-row-value">${step2Val}</span>
+      `;
+      document.getElementById('m4_row_sum').innerHTML = `
+        <span class="algo-row-label">總和</span>
+        <span class="algo-row-value">${total}</span>
+      `;
+
+      const stepCardOnes = document.getElementById('m4_step_card_ones');
+      const stepCardTens = document.getElementById('m4_step_card_tens');
+      const stepCardTotal = document.getElementById('m4_step_card_total');
+      if (stepCardOnes && stepCardTens && stepCardTotal) {
+        stepCardOnes.classList.toggle('active', false);
+        stepCardTens.classList.toggle('active', false);
+        stepCardTotal.classList.toggle('active', false);
+      }
+
+      const onesFormulaEl = document.getElementById('m4_step_card_ones_formula');
+      const onesValEl = document.getElementById('m4_step_card_ones_val');
+      const onesDetailEl = document.getElementById('m4_step_card_ones_detail');
+      if (onesFormulaEl) onesFormulaEl.innerText = `${m4N1} × ${ones2}`;
+      if (onesValEl) onesValEl.innerText = `${step1Val}`;
+      if (onesDetailEl) onesDetailEl.innerText = `因為 ${m4N2} 的個位是 ${ones2}，所以先算 ${m4N1} × ${ones2}，這一格最先寫進直式。`;
+
+      const tensFormulaEl = document.getElementById('m4_step_card_tens_formula');
+      const tensValEl = document.getElementById('m4_step_card_tens_val');
+      const tensDetailEl = document.getElementById('m4_step_card_tens_detail');
+      if (tensFormulaEl) tensFormulaEl.innerText = `${m4N1} × ${tens2}`;
+      if (tensValEl) tensValEl.innerText = `${step2Val}`;
+      if (tensDetailEl) tensDetailEl.innerText = `因為 ${m4N2} 的十位是 ${tens2Digit}，代表 ${tens2}，所以要後算並往左移一格。`;
+
+      const totalFormulaEl = document.getElementById('m4_step_card_total_formula');
+      const totalValEl = document.getElementById('m4_step_card_total_val');
+      const totalDetailEl = document.getElementById('m4_step_card_total_detail');
+      if (totalFormulaEl) totalFormulaEl.innerText = `${step1Val} + ${step2Val}`;
+      if (totalValEl) totalValEl.innerText = `${total}`;
+      if (totalDetailEl) totalDetailEl.innerText = `把先算的 ${step1Val} 和後算的 ${step2Val} 合起來，就是 ${total}。`;
+
+      const splitEqEl = document.getElementById('m4_split_eq');
+      const splitOnesFormulaEl = document.getElementById('m4_split_block_ones_formula');
+      const splitOnesValueEl = document.getElementById('m4_split_block_ones_value');
+      const splitTensFormulaEl = document.getElementById('m4_split_block_tens_formula');
+      const splitTensValueEl = document.getElementById('m4_split_block_tens_value');
+      if (splitEqEl) splitEqEl.innerText = `${m4N1} × ${m4N2} = ${m4N1} × ${ones2} + ${m4N1} × ${tens2}`;
+      if (splitOnesFormulaEl) splitOnesFormulaEl.innerText = `${m4N1} × ${ones2}`;
+      if (splitOnesValueEl) splitOnesValueEl.innerText = `${step1Val}`;
+      if (splitTensFormulaEl) splitTensFormulaEl.innerText = `${m4N1} × ${tens2}`;
+      if (splitTensValueEl) splitTensValueEl.innerText = `${step2Val}`;
+
+      const separateBtn = document.getElementById('m4_separate_btn');
+      if (separateBtn) {
+        separateBtn.innerText = m4IsSeparated ? '🧩 合併為一整塊長方形' : '🥢 顯示拆解板塊 (先算個位/後算十位)';
+        separateBtn.className = m4IsSeparated ? 'action-btn orange' : 'action-btn purple';
+      }
+
+      const gridBtn = document.getElementById('m4_grid_toggle_btn');
+      if (gridBtn) {
+        gridBtn.innerText = m4ShowGrid ? '🧱 隱藏方塊顯示' : '🔲 拆為方塊顯示 (透視網格)';
+        gridBtn.className = m4ShowGrid ? 'action-btn orange' : 'action-btn secondary';
+      }
+
+      // 更新幾何面積圖的外圍行寬與列高指示標籤
+      const topDimEl = document.getElementById('m4_dim_top_lbl');
+      if (topDimEl) {
+        topDimEl.innerText = `頂部寬度 (行數)：${m4N1}`;
+      }
+      const dimTensValEl = document.getElementById('m4_dim_tens_val');
+      if (dimTensValEl) {
+        dimTensValEl.innerText = `${tens2}`;
+      }
+      const dimOnesValEl = document.getElementById('m4_dim_ones_val');
+      if (dimOnesValEl) {
+        dimOnesValEl.innerText = `${ones2}`;
+      }
+
+      // 依據乘數的十位 (tens2) 與個位 (ones2) 動態分配整行的高度比例
+      // Row 1 包含 (左側十位標籤 + 右側十位面積塊)，Row 2 包含 (左側個位標籤 + 右側個位面積塊)
+      const rowRatio1 = Math.max(1, tens2 || 1);
+      const rowRatio2 = Math.max(1, ones2 || 1);
+
+      const gridRowsContainer = document.getElementById('m4_grid_rows_container');
+      if (gridRowsContainer) {
+        gridRowsContainer.style.gridTemplateRows = `${rowRatio1}fr ${rowRatio2}fr`;
+        gridRowsContainer.classList.toggle('separated', m4IsSeparated);
+      }
+
+      renderM4GeoBlock('m4_geo_tens', tens2, m4N1, `${m4N1} × ${tens2}`, step2Val, 'b1-color', true);
+      renderM4GeoBlock('m4_geo_ones', ones2, m4N1, `${m4N1} × ${ones2}`, step1Val, 'b3-color', false);
+
+      document.getElementById('m4_geo_desc').innerText = `總面積 = ${step1Val} (① 先算個位區) + ${step2Val} (② 後算十位區) = ${total}`;
+    }
+
+    function applyM4Inputs() {
+      m4N1 = parseInt(document.getElementById('m4_num1').value) || 45;
+      m4N2 = parseInt(document.getElementById('m4_num2').value) || 38;
+      renderM4();
+      const modal = document.getElementById('virtualKeypadModal');
+      if (modal && modal.style.display === 'flex') {
+        modal.style.display = 'none';
+        currentInputId = null;
+      }
+    }
+
+    function m4Step(stepNum) {
+      document.getElementById('m4_row_step1').classList.toggle('active', stepNum === 1);
+      document.getElementById('m4_row_step2').classList.toggle('active', stepNum === 2);
+      document.getElementById('m4_row_sum').classList.toggle('active', stepNum === 3);
+
+      const ones2 = m4N2 % 10;
+      const tens2Multiplier = Math.floor(m4N2 / 10);
+      const tens2 = tens2Multiplier * 10;
+      const tens1 = Math.floor(m4N1 / 10) * 10;
+      const ones1 = m4N1 % 10;
+
+      const note = document.getElementById('m4_algo_note');
+
+      if (stepNum === 1) {
+        document.getElementById('m4_geo_ones').classList.add('active');
+        document.getElementById('m4_geo_tens').classList.remove('active');
+        document.getElementById('m4_step_card_ones').classList.add('active');
+        document.getElementById('m4_step_card_tens').classList.remove('active');
+        document.getElementById('m4_step_card_total').classList.remove('active');
+        
+        const sub1 = tens1 * ones2;
+        const sub2 = ones1 * ones2;
+        const sum1 = sub1 + sub2;
+
+        note.innerHTML = `
+          <div>🟢 <b>第一步：先算個位乘積 (${m4N1} × ${ones2})</b></div>
+          <div class="m4-step-breakdown-box">
+            <div>💡 <b>先看個位 8</b>，所以這一塊排在前面：</div>
+            <div>• <span class="m4-split-badge" style="background:#fee2e2; color:#b91c1c;">${tens1} × ${ones2} = ${sub1}</span> (十位部分方塊)</div>
+            <div>• <span class="m4-split-badge" style="background:#fef3c7; color:#b45309;">${ones1} × ${ones2} = ${sub2}</span> (個位部分方塊)</div>
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 4px; font-weight: 800; color: var(--c-orange);">
+              👉 合計：${sub1} ＋ ${sub2} ＝ <b>${sum1}</b>（先寫直式第 1 行）
+            </div>
+          </div>
+        `;
+      } else if (stepNum === 2) {
+        document.getElementById('m4_geo_ones').classList.remove('active');
+        document.getElementById('m4_geo_tens').classList.add('active');
+        document.getElementById('m4_step_card_ones').classList.remove('active');
+        document.getElementById('m4_step_card_tens').classList.add('active');
+        document.getElementById('m4_step_card_total').classList.remove('active');
+        
+        const sub1 = tens1 * tens2;
+        const sub2 = ones1 * tens2;
+        const sum2 = sub1 + sub2;
+
+        note.innerHTML = `
+          <div>🔵 <b>第二步：後算十位乘積 (${m4N1} × ${tens2})</b></div>
+          <div class="m4-step-breakdown-box">
+            <div>💡 <b>乘數的 3 代表 30</b>，所以這一塊要往左移一格：</div>
+            <div>• <span class="m4-split-badge" style="background:#dbeafe; color:#1d4ed8;">${tens1} × ${tens2} = ${sub1}</span> (大百位方塊)</div>
+            <div>• <span class="m4-split-badge" style="background:#ede9fe; color:#6d28d9;">${ones1} × ${tens2} = ${sub2}</span> (十位條塊)</div>
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 4px; font-weight: 800; color: var(--c-blue);">
+              👉 合計：${sub1} ＋ ${sub2} ＝ <b>${sum2}</b>（寫在直式第 2 行並向左縮一位）
+            </div>
+          </div>
+        `;
+      } else if (stepNum === 3) {
+        document.getElementById('m4_geo_ones').classList.add('active');
+        document.getElementById('m4_geo_tens').classList.add('active');
+        document.getElementById('m4_step_card_ones').classList.remove('active');
+        document.getElementById('m4_step_card_tens').classList.remove('active');
+        document.getElementById('m4_step_card_total').classList.add('active');
+        const step1Val = m4N1 * ones2;
+        const step2Val = m4N1 * tens2;
+        const total = step1Val + step2Val;
+
+        note.innerHTML = `
+          <div>🏆 <b>第三步：兩層面積合體加總</b></div>
+          <div class="m4-step-breakdown-box" style="background: #f0fdf4; border-color: var(--c-green);">
+            <div style="font-size: 16px; font-weight: 900; color: var(--c-green);">
+              ${step1Val} (下層個位面積) ＋ ${step2Val} (上層十位面積) ＝ <b>${total}</b>
+            </div>
+            <div>🎉 直式上下兩層加起來，剛好把整塊大長方形面積完完整整拼滿！</div>
+          </div>
+        `;
+      }
+    }
+
+    /* ==========================================================================
+       模組 5：闖關練習邏輯
+       ========================================================================== */
+    const storyQuestions = [
+      {
+        title: "🌿 花園鋪草皮",
+        text: "園丁叔叔要在一塊長 24 公尺、寬 18 公尺的長方形土地上鋪滿草皮，請問總共需要多少平方公尺的草皮？",
+        a: 24, b: 18
+      },
+      {
+        title: "🏫 禮堂排椅子",
+        text: "學校禮堂要舉辦畢業典禮，總共排了 26 排椅子，每一排有 35 張椅子，請問禮堂一共有多少張椅子？",
+        a: 35, b: 26
+      },
+      {
+        title: "📦 果園裝箱",
+        text: "果農阿姨採收了香甜多汁的橘子，每箱裝 48 顆，總共裝了 32 箱，請問一共採收了多少顆橘子？",
+        a: 48, b: 32
+      },
+      {
+        title: "🎟️ 遊樂園門票",
+        text: "國小三年級共有 43 位小朋友去遊樂園校外教學，每張門票 65 元，請問購買門票一共要花多少元？",
+        a: 65, b: 43
+      }
+    ];
+
+    let currentStoryIdx = 0;
+    let storyValues = {};
+
+    function switchM5Mode(mode) {
+      document.getElementById('m5_tab_story').classList.toggle('secondary', mode !== 'story');
+      document.getElementById('m5_tab_calc').classList.toggle('secondary', mode !== 'calc');
+      document.getElementById('m5_story_section').style.display = mode === 'story' ? 'block' : 'none';
+      document.getElementById('m5_calc_section').style.display = mode === 'calc' ? 'block' : 'none';
+      closeKeypad();
+    }
+
+    function loadStoryQuestion() {
+      const idx = parseInt(document.getElementById('m5_story_select').value);
+      currentStoryIdx = idx;
+      const q = storyQuestions[idx];
+      document.getElementById('m5_story_text').innerText = q.text;
+
+      const tA = Math.floor(q.a / 10) * 10;
+      const oA = q.a % 10;
+      const tB = Math.floor(q.b / 10) * 10;
+      const oB = q.b % 10;
+
+      storyValues = {
+        b1: tA * tB,
+        b2: tA * oB,
+        b3: oA * tB,
+        b4: oA * oB,
+        total: q.a * q.b
+      };
+
+      document.getElementById('m5_q_b1_label').innerText = `${tA} × ${tB} = ?`;
+      document.getElementById('m5_q_b2_label').innerText = `${tA} × ${oB} = ?`;
+      document.getElementById('m5_q_b3_label').innerText = `${oA} × ${tB} = ?`;
+      document.getElementById('m5_q_b4_label').innerText = `${oA} × ${oB} = ?`;
+
+      // 清空輸入
+      document.getElementById('m5_ans_b1').value = '';
+      document.getElementById('m5_ans_b2').value = '';
+      document.getElementById('m5_ans_b3').value = '';
+      document.getElementById('m5_ans_b4').value = '';
+      document.getElementById('m5_ans_total').value = '';
+      document.getElementById('m5_story_feedback').className = 'feedback-box';
+      document.getElementById('m5_story_feedback').style.display = 'none';
+    }
+
+    function randomStoryQuestion() {
+      const randIdx = Math.floor(Math.random() * storyQuestions.length);
+      document.getElementById('m5_story_select').value = randIdx;
+      loadStoryQuestion();
+    }
+
+    function checkStoryAnswer() {
+      const a1 = parseInt(document.getElementById('m5_ans_b1').value);
+      const a2 = parseInt(document.getElementById('m5_ans_b2').value);
+      const a3 = parseInt(document.getElementById('m5_ans_b3').value);
+      const a4 = parseInt(document.getElementById('m5_ans_b4').value);
+      const aTotal = parseInt(document.getElementById('m5_ans_total').value);
+
+      const fb = document.getElementById('m5_story_feedback');
+      if (a1 === storyValues.b1 && a2 === storyValues.b2 && a3 === storyValues.b3 && a4 === storyValues.b4 && aTotal === storyValues.total) {
+        fb.className = 'feedback-box correct';
+        fb.innerHTML = `🎉 太棒了！完全正確！<br>四塊面積分別是 ${storyValues.b1} + ${storyValues.b2} + ${storyValues.b3} + ${storyValues.b4} = <b>${storyValues.total}</b>！`;
+      } else {
+        fb.className = 'feedback-box wrong';
+        fb.innerHTML = `❌ 哎呀，有部分數字填錯囉！<br>可以點擊「💡 查看提示圖解」重新檢查看看喔！`;
+      }
+      fb.style.display = 'block';
+      closeKeypad();
+    }
+
+    function showStoryHint() {
+      const fb = document.getElementById('m5_story_feedback');
+      fb.className = 'feedback-box correct';
+      fb.innerHTML = `💡 <b>解題圖解提示</b>：<br>① ${document.getElementById('m5_q_b1_label').innerText.replace('?', storyValues.b1)}<br>② ${document.getElementById('m5_q_b2_label').innerText.replace('?', storyValues.b2)}<br>③ ${document.getElementById('m5_q_b3_label').innerText.replace('?', storyValues.b3)}<br>④ ${document.getElementById('m5_q_b4_label').innerText.replace('?', storyValues.b4)}<br>加總 = ${storyValues.total}`;
+      fb.style.display = 'block';
+    }
+
+    // 計算闖關模式
+    let calcVals = {};
+    function generateCalcQuiz() {
+      const n1 = Math.floor(Math.random() * 80) + 12;
+      const n2 = Math.floor(Math.random() * 80) + 12;
+      
+      const t1 = Math.floor(n1 / 10) * 10;
+      const o1 = n1 % 10;
+      const t2 = Math.floor(n2 / 10) * 10;
+      const o2 = n2 % 10;
+
+      calcVals = {
+        b1: t1 * t2,
+        b2: t1 * o2,
+        b3: o1 * t2,
+        b4: o1 * o2,
+        total: n1 * n2
+      };
+
+      document.getElementById('m5_calc_title').innerText = `題目：${n1} × ${n2} = ?`;
+      document.getElementById('m5_c_b1_lbl').innerText = `${t1} × ${t2}`;
+      document.getElementById('m5_c_b2_lbl').innerText = `${t1} × ${o2}`;
+      document.getElementById('m5_c_b3_lbl').innerText = `${o1} × ${t2}`;
+      document.getElementById('m5_c_b4_lbl').innerText = `${o1} × ${o2}`;
+
+      document.getElementById('m5_c_b1').value = '';
+      document.getElementById('m5_c_b2').value = '';
+      document.getElementById('m5_c_b3').value = '';
+      document.getElementById('m5_c_b4').value = '';
+      document.getElementById('m5_c_total').value = '';
+      document.getElementById('m5_calc_feedback').style.display = 'none';
+    }
+
+    function checkCalcAnswer() {
+      const c1 = parseInt(document.getElementById('m5_c_b1').value);
+      const c2 = parseInt(document.getElementById('m5_c_b2').value);
+      const c3 = parseInt(document.getElementById('m5_c_b3').value);
+      const c4 = parseInt(document.getElementById('m5_c_b4').value);
+      const cTotal = parseInt(document.getElementById('m5_c_total').value);
+
+      const fb = document.getElementById('m5_calc_feedback');
+      if (c1 === calcVals.b1 && c2 === calcVals.b2 && c3 === calcVals.b3 && c4 === calcVals.b4 && cTotal === calcVals.total) {
+        fb.className = 'feedback-box correct';
+        fb.innerHTML = `🎉 恭喜闖關成功！全部答對！<br>總和 = <b>${calcVals.total}</b>`;
+      } else {
+        fb.className = 'feedback-box wrong';
+        fb.innerHTML = `❌ 有格子算錯了喔，再仔細算算看！`;
+      }
+      fb.style.display = 'block';
+      closeKeypad();
+    }
+
+    /* ==========================================================================
+       初始化頁面
+       ========================================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      renderM1();
+      renderM2Dynamic();
+      renderM2Compare();
+      renderM3();
+      renderM4();
+      loadStoryQuestion();
+      generateCalcQuiz();
+    });
+  </script>
+</body>
+</html>
+
+

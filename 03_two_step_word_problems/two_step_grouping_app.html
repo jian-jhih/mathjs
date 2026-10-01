@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>兩步驟群組加減學習器</title>
+  <style>
+    :root {
+      --primary: #0f766e;
+      --secondary: #ea580c;
+      --bg: #f0fdfa;
+      --card: #ffffff;
+      --ink: #1f2937;
+      --muted: #64748b;
+      --ok: #16a34a;
+      --warn: #dc2626;
+      --line: #cbd5e1;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      background:
+        var(--bg);
+      color: var(--ink);
+    }
+
+    header {
+      padding: 18px 16px;
+      color: #fff;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.6rem;
+      letter-spacing: 0.03em;
+    }
+
+    .layout {
+      max-width: 1200px;
+      margin: 16px auto;
+      padding: 0 12px 12px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 14px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05);
+    }
+
+    .sidebar {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: calc(100vh - 120px);
+      overflow: auto;
+    }
+
+    .problem-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      cursor: pointer;
+      background: #fff;
+      transition: 0.15s;
+    }
+
+    .problem-card:hover { transform: translateY(-1px); border-color: var(--primary); }
+    .problem-card.active { border: 2px solid var(--primary); background: #ecfeff; }
+
+    .problem-card .title {
+      font-weight: 700;
+      margin-bottom: 4px;
+      font-size: 0.95rem;
+    }
+
+    .problem-card .desc {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .custom-trigger {
+      margin-top: 8px;
+      border: none;
+      border-radius: 12px;
+      padding: 12px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .main {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .problem-box {
+      padding: 12px;
+      border-left: 6px solid var(--secondary);
+      background: #fff7ed;
+      border-radius: 10px;
+      font-size: 1.03rem;
+      line-height: 1.6;
+      min-height: 64px;
+    }
+    .inline-editor {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      background: #f8fafc;
+    }
+    .inline-editor .head {
+      font-weight: 700;
+      margin-bottom: 8px;
+      font-size: 0.92rem;
+    }
+    .inline-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .inline-grid label {
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+    .inline-grid input {
+      width: 72px;
+      padding: 6px;
+    }
+    .inline-error {
+      color: var(--warn);
+      font-size: 0.85rem;
+      min-height: 18px;
+      margin-top: 6px;
+    }
+
+    .canvas {
+      min-height: 330px;
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 10px;
+      background: #f8fafc;
+    }
+
+    .group {
+      border: 2px solid var(--primary);
+      border-radius: 12px;
+      background: #fff;
+      min-width: 100px;
+      min-height: 72px;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.25s;
+    }
+
+    .group.ghost { opacity: 0.25; border-style: dashed; }
+    .group.highlight { box-shadow: 0 0 0 3px #fed7aa inset; border-color: var(--secondary); }
+
+    .items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      justify-content: center;
+    }
+
+    .item {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .item.removed { opacity: 0.2; text-decoration: line-through; }
+    .item.diff { background: #fef3c7; border-radius: 4px; }
+
+    .compare-wrap { display: flex; flex-direction: column; gap: 2px; }
+    .compare-row { display: flex; gap: 8px; }
+
+    .control-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button.action {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+    }
+
+    .s1 { background: #ea580c; }
+    .s2 { background: #0f766e; }
+    .reset { background: #64748b; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .math {
+      background: #111827;
+      color: #e5e7eb;
+      border-radius: 12px;
+      padding: 14px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 1.4rem;
+      text-align: center;
+      min-height: 66px;
+    }
+
+    .math .hot { color: #f59e0b; font-weight: 700; }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.92rem;
+      min-height: 22px;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.42);
+      display: none;
+      z-index: 50;
+    }
+
+    .modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(92vw, 620px);
+      max-height: 86vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px;
+      display: none;
+      z-index: 60;
+      border: 1px solid var(--line);
+    }
+
+    .row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .row label { min-width: 112px; font-weight: 700; }
+    input, select {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 0.95rem;
+    }
+
+    .items-builder { border: 1px solid var(--line); border-radius: 10px; padding: 8px; margin-bottom: 8px; }
+    .builder-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+    .builder-row select { width: 86px; text-align: center; }
+    .builder-row input[type="number"] { width: 90px; }
+
+    .mini { font-size: 0.86rem; color: var(--muted); }
+    .error { color: var(--warn); font-weight: 700; min-height: 20px; }
+
+    .modal-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .modal-actions button { border: none; border-radius: 10px; padding: 10px 12px; font-weight: 700; cursor: pointer; }
+    .ok-btn { background: var(--ok); color: #fff; }
+    .cancel-btn { background: #e2e8f0; }
+    .soft-btn { background: #f1f5f9; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { max-height: none; }
+      .problem-box { font-size: 0.98rem; }
+      .math { font-size: 1.2rem; }
+    }
+  </style>
+<style id="math-flat-theme">
+:root{--paper:#F7F3E8;--ink:#24303A;--action:#2F5D7E;--value:#C58A2B;--correct:#557A5A;--error:#B7523E;--rule:#C9C1B2}
+body{background:var(--paper)!important;color:var(--ink)!important}button,input,select,textarea{border:2px solid var(--rule)!important}button:hover{background:var(--action)!important;color:#fff!important}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--value)!important;outline-offset:2px!important}
+</style></head>
+<body>
+  <header>
+    <h1>兩步驟群組加減學習器</h1>
+  </header>
+
+  <div class="layout">
+    <aside class="panel sidebar" id="problemList"></aside>
+
+    <section class="panel main">
+      <div id="problemText" class="problem-box">請先選一題。</div>
+      <div id="inlineEditor" class="inline-editor"></div>
+      <div id="canvas" class="canvas"></div>
+      <div class="control-row">
+        <button id="btnStep1" class="action s1">步驟 1：先算括號</button>
+        <button id="btnStep2" class="action s2" disabled>步驟 2：再算群組</button>
+        <button id="btnReset" class="action reset">重來</button>
+      </div>
+      <div id="mathLine" class="math"></div>
+      <div id="hintText" class="hint"></div>
+    </section>
+  </div>
+
+  <div id="overlay" class="overlay"></div>
+  <section id="customModal" class="modal" aria-label="自訂題目">
+    <h2 style="margin-top:0;">自訂題目</h2>
+    <div class="row">
+      <label for="customType">題型</label>
+      <select id="customType">
+        <option value="addition_first">(A + B + ...) × N</option>
+        <option value="subtraction_first">(A - B) × N</option>
+        <option value="difference_pair">(大 - 小) × N（比較差）</option>
+        <option value="group_addition">A × (B + C)</option>
+        <option value="group_subtraction">A × (B - C)</option>
+      </select>
+    </div>
+
+    <div class="items-builder" id="builderBox">
+      <div class="mini">每列代表一種物件：圖示 + 數量</div>
+      <div id="builderRows"></div>
+      <button id="btnAddRow" class="soft-btn" type="button">新增一列物件</button>
+    </div>
+
+    <div class="row">
+      <label id="multLabel" for="multiplier">倍數 N</label>
+      <input id="multiplier" type="number" min="1" max="20" value="4" />
+    </div>
+
+    <div class="row" id="extraRow" style="display:none;">
+      <label id="extraLabel" for="extraVal">額外群組 C</label>
+      <input id="extraVal" type="number" min="0" max="20" value="2" />
+    </div>
+
+    <div id="customPreview" class="mini"></div>
+    <div id="customError" class="error"></div>
+
+    <div class="modal-actions">
+      <button id="btnApplyCustom" class="ok-btn" type="button">套用題目</button>
+      <button id="btnCancelCustom" class="cancel-btn" type="button">取消</button>
+    </div>
+  </section>
+
+  <script>
+    const DROPDOWN_ICONS = [
+      "🍎","🍐","🍊","🍌","🍇","🍓","🍉","🥕","🌽","🍪",
+      "⭐","❤️","🟦","🟧","🔵","🔴","⚪","✏️","📘","📗",
+      "🧃","🌼","🐟","🐱","🐶"
+    ];
+
+    const PROBLEMS = [
+      { id: 1, type: "addition_first", title: "糖果袋子", text: "每袋有 4 顆草莓糖和 2 顆牛奶糖，共有 5 袋，總共有幾顆糖？", items: [{ icon: "🍓", count: 4 }, { icon: "🥛", count: 2 }], multiplier: 5 },
+      { id: 2, type: "group_addition", title: "貼紙包", text: "每包有 3 張貼紙，原本有 6 包，又多買 4 包，總共有幾張貼紙？", items: [{ icon: "⭐", count: 3 }], baseGroups: 6, extraGroups: 4 },
+      { id: 3, type: "subtraction_first", title: "鉛筆盒", text: "一盒有 19 枝鉛筆，送出 8 枝，剩下的數量做成 3 盒，一共有幾枝？", items: [{ icon: "✏️", count: 19 }, { icon: "❌", count: 8 }], multiplier: 3 },
+      { id: 4, type: "difference_pair", title: "藍紅球差", text: "每組藍球 5 顆、紅球 2 顆，這樣的組合有 6 組，藍球比紅球多幾顆？", items: [{ icon: "🔵", count: 5 }, { icon: "🔴", count: 2 }], multiplier: 6 },
+      { id: 5, type: "group_subtraction", title: "餅乾盤", text: "每盤有 8 片餅乾，本來有 12 盤，吃掉 4 盤，還剩幾片餅乾？", items: [{ icon: "🍪", count: 8 }], baseGroups: 12, minusGroups: 4 },
+      { id: 6, type: "addition_first", title: "教室積木", text: "每盒有 6 個方塊和 3 個長條，一共有 4 盒，總共有幾個積木？", items: [{ icon: "🟦", count: 6 }, { icon: "🟧", count: 3 }], multiplier: 4 },
+      { id: 7, type: "group_addition", title: "花朵盆栽", text: "每盆有 2 朵花，原本 10 盆，再加 5 盆，一共有幾朵花？", items: [{ icon: "🌼", count: 2 }], baseGroups: 10, extraGroups: 5 },
+      { id: 8, type: "subtraction_first", title: "彈珠袋", text: "每袋 14 顆彈珠，掉了 5 顆，剩下的數量做 4 袋，一共有幾顆？", items: [{ icon: "⚪", count: 14 }, { icon: "❌", count: 5 }], multiplier: 4 },
+      { id: 9, type: "difference_pair", title: "書架高度差", text: "每組有 7 本高書和 4 本矮書，做 5 組，高書比矮書多幾本？", items: [{ icon: "📘", count: 7 }, { icon: "📗", count: 4 }], multiplier: 5 },
+      { id: 10, type: "group_subtraction", title: "果汁箱", text: "每箱 9 瓶果汁，本來有 15 箱，賣掉 6 箱，還剩幾瓶？", items: [{ icon: "🧃", count: 9 }], baseGroups: 15, minusGroups: 6 }
+    ];
+
+    let current = null;
+    let step = 0;
+
+    const $ = (id) => document.getElementById(id);
+    const listEl = $("problemList");
+    const canvas = $("canvas");
+    const problemText = $("problemText");
+    const mathLine = $("mathLine");
+    const hintText = $("hintText");
+    const inlineEditor = $("inlineEditor");
+
+    function makeProblemText(p) {
+      if (p.type === "addition_first") {
+        return `每袋有 ${p.items[0].count} 個${p.items[0].icon}和 ${p.items[1].count} 個${p.items[1].icon}，共有 ${p.multiplier} 袋，總共有多少？`;
+      }
+      if (p.type === "subtraction_first") {
+        return `每組有 ${p.items[0].count} 個${p.items[0].icon}，拿掉 ${p.items[1].count} 個後，共有 ${p.multiplier} 組，總共有多少？`;
+      }
+      if (p.type === "difference_pair") {
+        return `每組有 ${p.items[0].count} 個${p.items[0].icon}和 ${p.items[1].count} 個${p.items[1].icon}，共有 ${p.multiplier} 組，兩者總差是多少？`;
+      }
+      if (p.type === "group_addition") {
+        return `每組有 ${p.items[0].count} 個${p.items[0].icon}，原本 ${p.baseGroups} 組，再加 ${p.extraGroups} 組，總共有多少？`;
+      }
+      return `每組有 ${p.items[0].count} 個${p.items[0].icon}，原本 ${p.baseGroups} 組，減少 ${p.minusGroups} 組，總共有多少？`;
+    }
+
+    function safeInt(v, d = 0) {
+      const n = Number(v);
+      return Number.isFinite(n) ? Math.floor(n) : d;
+    }
+
+    function buildSidebar() {
+      listEl.innerHTML = "";
+      PROBLEMS.forEach((p) => {
+        const card = document.createElement("div");
+        card.className = "problem-card";
+        card.innerHTML = `<div class="title">${p.title}</div><div class="desc">${p.text}</div>`;
+        card.onclick = () => selectProblem(p);
+        listEl.appendChild(card);
+      });
+
+      const btn = document.createElement("button");
+      btn.className = "custom-trigger";
+      btn.textContent = "自訂題目";
+      btn.onclick = openCustom;
+      listEl.appendChild(btn);
+    }
+
+    function highlightSidebar(id) {
+      [...document.querySelectorAll(".problem-card")].forEach((c, i) => {
+        c.classList.toggle("active", PROBLEMS[i] && PROBLEMS[i].id === id);
+      });
+    }
+
+    function selectProblem(p) {
+      current = structuredClone(p);
+      step = 0;
+      problemText.textContent = makeProblemText(current);
+      hintText.textContent = "按「步驟 1」先做括號內，再按「步驟 2」做群組。";
+      $("btnStep1").disabled = false;
+      $("btnStep2").disabled = true;
+      highlightSidebar(p.id);
+      renderInlineEditor();
+      renderInitial();
+      renderMath();
+    }
+
+    function renderInlineEditor() {
+      const p = current;
+      const inputs = [];
+      if (p.type === "addition_first" || p.type === "subtraction_first" || p.type === "difference_pair") {
+        inputs.push({ key: "a", label: `A(${p.items[0].icon})`, value: p.items[0].count });
+        inputs.push({ key: "b", label: `B(${p.items[1].icon})`, value: p.items[1].count });
+        inputs.push({ key: "n", label: "組數N", value: p.multiplier });
+      } else if (p.type === "group_addition") {
+        inputs.push({ key: "a", label: `每組A(${p.items[0].icon})`, value: p.items[0].count });
+        inputs.push({ key: "b", label: "基礎組B", value: p.baseGroups });
+        inputs.push({ key: "c", label: "增加組C", value: p.extraGroups });
+      } else {
+        inputs.push({ key: "a", label: `每組A(${p.items[0].icon})`, value: p.items[0].count });
+        inputs.push({ key: "b", label: "基礎組B", value: p.baseGroups });
+        inputs.push({ key: "c", label: "減少組C", value: p.minusGroups });
+      }
+
+      inlineEditor.innerHTML = `
+        <div class="head">調整本題數字</div>
+        <div class="inline-grid">
+          ${inputs.map((x) => `<label>${x.label}<br><input type="number" min="0" max="30" data-key="${x.key}" value="${x.value}"></label>`).join("")}
+          <button id="btnApplyInline" class="soft-btn" type="button">套用數字</button>
+        </div>
+        <div id="inlineError" class="inline-error"></div>
+      `;
+      $("btnApplyInline").onclick = applyInlineNumbers;
+    }
+
+    function applyInlineNumbers() {
+      const errEl = $("inlineError");
+      const getVal = (k) => safeInt(inlineEditor.querySelector(`input[data-key='${k}']`)?.value, 0);
+      const p = current;
+      const a = getVal("a");
+      const b = getVal("b");
+      const c = getVal("c");
+      const n = getVal("n");
+
+      if (a < 0 || b < 0 || c < 0 || n < 0) {
+        errEl.textContent = "數字不能小於 0。";
+        return;
+      }
+
+      if (p.type === "addition_first") {
+        if (n < 1) return void (errEl.textContent = "組數 N 至少要 1。");
+        p.items[0].count = a;
+        p.items[1].count = b;
+        p.multiplier = n;
+      } else if (p.type === "subtraction_first") {
+        if (n < 1) return void (errEl.textContent = "組數 N 至少要 1。");
+        if (a < b) return void (errEl.textContent = "A 要大於或等於 B。");
+        p.items[0].count = a;
+        p.items[1].count = b;
+        p.multiplier = n;
+      } else if (p.type === "difference_pair") {
+        if (n < 1) return void (errEl.textContent = "組數 N 至少要 1。");
+        p.items[0].count = a;
+        p.items[1].count = b;
+        p.multiplier = n;
+      } else if (p.type === "group_addition") {
+        p.items[0].count = a;
+        p.baseGroups = b;
+        p.extraGroups = c;
+      } else if (p.type === "group_subtraction") {
+        if (b < c) return void (errEl.textContent = "基礎組 B 要大於或等於減少組 C。");
+        p.items[0].count = a;
+        p.baseGroups = b;
+        p.minusGroups = c;
+      }
+
+      errEl.textContent = "";
+      problemText.textContent = makeProblemText(p);
+      resetCurrent();
+    }
+
+    function createItem(icon) {
+      const s = document.createElement("span");
+      s.className = "item";
+      s.textContent = icon || "";
+      return s;
+    }
+
+    function createGroup(items, opts = {}) {
+      const g = document.createElement("div");
+      g.className = "group";
+      if (opts.ghost) g.classList.add("ghost");
+      if (opts.highlight) g.classList.add("highlight");
+
+      const wrap = document.createElement("div");
+      wrap.className = "items";
+      items.forEach((it) => {
+        for (let i = 0; i < it.count; i++) {
+          const node = createItem(it.icon);
+          if (it.removed) node.classList.add("removed");
+          wrap.appendChild(node);
+        }
+      });
+
+      g.appendChild(wrap);
+      return g;
+    }
+
+    function createCompareGroup(a, b, markDiff = false) {
+      const g = document.createElement("div");
+      g.className = "group";
+
+      const wrap = document.createElement("div");
+      wrap.className = "compare-wrap";
+      const max = Math.max(a.count, b.count);
+      const same = Math.min(a.count, b.count);
+
+      for (let i = 0; i < max; i++) {
+        const row = document.createElement("div");
+        row.className = "compare-row";
+        const left = createItem(i < a.count ? a.icon : "");
+        const right = createItem(i < b.count ? b.icon : "");
+
+        if (markDiff) {
+          if (i < same) {
+            left.style.opacity = "0.25";
+            right.style.opacity = "0.25";
+          } else {
+            if (i < a.count) left.classList.add("diff");
+            if (i < b.count) right.classList.add("diff");
+          }
+        }
+
+        row.append(left, right);
+        wrap.appendChild(row);
+      }
+
+      g.appendChild(wrap);
+      return g;
+    }
+
+    function renderInitial() {
+      canvas.innerHTML = "";
+      const p = current;
+
+      if (p.type === "addition_first" || p.type === "subtraction_first") {
+        const base = p.type === "addition_first"
+          ? p.items
+          : [{ icon: p.items[0].icon, count: p.items[0].count - (step >= 1 ? p.items[1].count : 0) }, { icon: p.items[1].icon, count: step >= 1 ? p.items[1].count : 0, removed: step >= 1 }];
+        const g = createGroup(base, { highlight: step >= 1 });
+        canvas.appendChild(g);
+      } else if (p.type === "group_addition") {
+        for (let i = 0; i < p.baseGroups; i++) canvas.appendChild(createGroup(p.items));
+        if (step >= 1) {
+          for (let i = 0; i < p.extraGroups; i++) {
+            canvas.appendChild(createGroup(p.items, { highlight: true }));
+          }
+        }
+      } else if (p.type === "group_subtraction") {
+        const live = p.baseGroups - (step >= 1 ? p.minusGroups : 0);
+        for (let i = 0; i < p.baseGroups; i++) {
+          const ghost = i >= live;
+          canvas.appendChild(createGroup(p.items, { ghost }));
+        }
+      } else if (p.type === "difference_pair") {
+        for (let i = 0; i < (step >= 2 ? p.multiplier : 1); i++) {
+          canvas.appendChild(createCompareGroup(p.items[0], p.items[1], step >= 1));
+        }
+      }
+
+      if (step >= 2 && (p.type === "addition_first" || p.type === "subtraction_first")) {
+        const base = canvas.firstElementChild?.cloneNode(true);
+        if (base) {
+          base.classList.remove("highlight");
+          for (let i = 1; i < p.multiplier; i++) canvas.appendChild(base.cloneNode(true));
+        }
+      }
+    }
+
+    function stageData(p) {
+      if (p.type === "addition_first") {
+        const inside = p.items.reduce((s, x) => s + x.count, 0);
+        return { left: `(${p.items.map((x) => x.count).join(" + ")})`, inside, right: p.multiplier, total: inside * p.multiplier, op: "×", msg1: `先把每組加起來：${inside}`, msg2: `再乘上組數：${inside} × ${p.multiplier}` };
+      }
+      if (p.type === "subtraction_first") {
+        const inside = p.items[0].count - p.items[1].count;
+        return { left: `(${p.items[0].count} - ${p.items[1].count})`, inside, right: p.multiplier, total: inside * p.multiplier, op: "×", msg1: `先算每組剩下：${inside}`, msg2: `再乘上組數：${inside} × ${p.multiplier}` };
+      }
+      if (p.type === "difference_pair") {
+        const big = Math.max(p.items[0].count, p.items[1].count);
+        const small = Math.min(p.items[0].count, p.items[1].count);
+        const inside = big - small;
+        return { left: `(${big} - ${small})`, inside, right: p.multiplier, total: inside * p.multiplier, op: "×", msg1: `先找每組差：${inside}`, msg2: `再乘上組數：${inside} × ${p.multiplier}` };
+      }
+      if (p.type === "group_addition") {
+        const inside = p.baseGroups + p.extraGroups;
+        return { left: p.items[0].count, inside, right: `(${p.baseGroups} + ${p.extraGroups})`, total: p.items[0].count * inside, op: "×", msg1: `先算總組數：${inside}`, msg2: `再乘每組數量：${p.items[0].count} × ${inside}` };
+      }
+      const inside = p.baseGroups - p.minusGroups;
+      return { left: p.items[0].count, inside, right: `(${p.baseGroups} - ${p.minusGroups})`, total: p.items[0].count * inside, op: "×", msg1: `先算剩下幾組：${inside}`, msg2: `再乘每組數量：${p.items[0].count} × ${inside}` };
+    }
+
+    function renderMath() {
+      const d = stageData(current);
+      if (current.type === "group_addition" || current.type === "group_subtraction") {
+        const insideShown = step >= 1 ? `<span class="hot">${d.inside}</span>` : d.right;
+        const resultShown = step >= 2 ? `<span class="hot">${d.total}</span>` : "?";
+        mathLine.innerHTML = `${d.left} ${d.op} ${insideShown} = ${resultShown}`;
+      } else {
+        const leftShown = step >= 1 ? `<span class="hot">${d.inside}</span>` : d.left;
+        const resultShown = step >= 2 ? `<span class="hot">${d.total}</span>` : "?";
+        mathLine.innerHTML = `${leftShown} ${d.op} ${d.right} = ${resultShown}`;
+      }
+    }
+
+    function doStep1() {
+      step = 1;
+      $("btnStep1").disabled = true;
+      $("btnStep2").disabled = false;
+      hintText.textContent = stageData(current).msg1;
+      renderInitial();
+      renderMath();
+    }
+
+    function doStep2() {
+      step = 2;
+      $("btnStep2").disabled = true;
+      hintText.textContent = stageData(current).msg2;
+      renderInitial();
+      renderMath();
+    }
+
+    function resetCurrent() {
+      if (!current) return;
+      step = 0;
+      $("btnStep1").disabled = false;
+      $("btnStep2").disabled = true;
+      hintText.textContent = "按「步驟 1」先做括號內，再按「步驟 2」做群組。";
+      renderInitial();
+      renderMath();
+    }
+
+    function openCustom() {
+      $("overlay").style.display = "block";
+      $("customModal").style.display = "block";
+      $("customError").textContent = "";
+      initBuilderRows(2);
+      syncCustomUI();
+      previewCustom();
+    }
+
+    function closeCustom() {
+      $("overlay").style.display = "none";
+      $("customModal").style.display = "none";
+    }
+
+    function initBuilderRows(n) {
+      const box = $("builderRows");
+      box.innerHTML = "";
+      for (let i = 0; i < n; i++) addBuilderRow(i === 0 ? "🍎" : "🍐", i === 0 ? 3 : 2);
+    }
+
+    function addBuilderRow(icon = "🍎", count = 1) {
+      const row = document.createElement("div");
+      row.className = "builder-row";
+      const options = DROPDOWN_ICONS
+        .map((x) => `<option value="${x}" ${x === icon ? "selected" : ""}>${x}</option>`)
+        .join("");
+      row.innerHTML = `
+        <select>${options}</select>
+        <input type="number" min="0" max="20" value="${count}">
+        <button type="button" class="soft-btn">刪除</button>
+      `;
+      row.querySelector("button").onclick = () => {
+        row.remove();
+        previewCustom();
+      };
+      row.querySelectorAll("input").forEach((i) => i.addEventListener("input", previewCustom));
+      $("builderRows").appendChild(row);
+    }
+
+    function getBuilderItems() {
+      const rows = [...document.querySelectorAll(".builder-row")];
+      return rows.map((r) => {
+        const iconSelect = r.querySelector("select");
+        const numInput = r.querySelector("input[type='number']");
+        return {
+          icon: (iconSelect?.value || "🍎").trim().slice(0, 2),
+          count: safeInt(numInput?.value, 0)
+        };
+      });
+    }
+
+    function syncCustomUI() {
+      const type = $("customType").value;
+      const groupType = type === "group_addition" || type === "group_subtraction";
+      const pairType = type === "subtraction_first" || type === "difference_pair";
+
+      $("extraRow").style.display = groupType ? "flex" : "none";
+      $("btnAddRow").style.display = groupType ? "none" : "inline-block";
+
+      $("multLabel").textContent = groupType ? "基礎群組 B" : "倍數 N";
+      $("extraLabel").textContent = type === "group_subtraction" ? "扣掉群組 C" : "額外群組 C";
+
+      const currentRows = document.querySelectorAll(".builder-row").length;
+      const needRows = groupType ? 1 : (pairType ? 2 : Math.max(2, currentRows));
+      if (currentRows !== needRows) initBuilderRows(needRows);
+    }
+
+    function previewCustom() {
+      const type = $("customType").value;
+      const items = getBuilderItems();
+      const m = safeInt($("multiplier").value, 1);
+      const ex = safeInt($("extraVal").value, 0);
+
+      let text = "";
+      if (type === "addition_first") {
+        text = `(${items.map((x) => x.count).join(" + ")}) × ${m}`;
+      } else if (type === "subtraction_first") {
+        text = `(${items[0]?.count || 0} - ${items[1]?.count || 0}) × ${m}`;
+      } else if (type === "difference_pair") {
+        const a = items[0]?.count || 0;
+        const b = items[1]?.count || 0;
+        text = `(${Math.max(a, b)} - ${Math.min(a, b)}) × ${m}`;
+      } else if (type === "group_addition") {
+        text = `${items[0]?.count || 0} × (${m} + ${ex})`;
+      } else {
+        text = `${items[0]?.count || 0} × (${m} - ${ex})`;
+      }
+
+      $("customPreview").textContent = `預覽算式：${text}`;
+    }
+
+    function validateCustom(type, items, m, ex) {
+      if (!Number.isFinite(m) || m < 1 || m > 20) return "倍數或基礎群組要在 1~20。";
+      if (!Number.isFinite(ex) || ex < 0 || ex > 20) return "額外/扣掉群組要在 0~20。";
+      if (items.length === 0) return "至少要有一列物件。";
+      if (items.some((x) => !x.icon)) return "每列都要有圖示。";
+      if (items.some((x) => !Number.isFinite(x.count) || x.count < 0 || x.count > 20)) return "每列數量要在 0~20。";
+
+      if (type === "addition_first") {
+        if (items.length < 2) return "加法題至少要兩列物件。";
+        if (items.reduce((s, x) => s + x.count, 0) <= 0) return "括號內總和要大於 0。";
+      }
+
+      if (type === "subtraction_first") {
+        if (items.length < 2) return "減法題要兩列物件。";
+        if (items[0].count < items[1].count) return "(A - B) 需要 A >= B。";
+      }
+
+      if (type === "difference_pair") {
+        if (items.length < 2) return "比較差題要兩列物件。";
+        if (items[0].count === items[1].count) return "兩種物件數量不能一樣，否則差為 0。";
+      }
+
+      if (type === "group_subtraction") {
+        if (m < ex) return "B - C 需要 B >= C。";
+      }
+
+      return "";
+    }
+
+    function applyCustom() {
+      const type = $("customType").value;
+      const items = getBuilderItems();
+      const m = safeInt($("multiplier").value, 1);
+      const ex = safeInt($("extraVal").value, 0);
+
+      const err = validateCustom(type, items, m, ex);
+      if (err) {
+        $("customError").textContent = err;
+        return;
+      }
+
+      let p;
+      if (type === "addition_first") {
+        const sum = items.reduce((s, x) => s + x.count, 0);
+        p = {
+          id: Date.now(),
+          type,
+          title: "自訂：同組相加",
+          text: `每組有 ${items.map((x) => `${x.count}${x.icon}`).join("、")}，共有 ${m} 組，總共有多少？`,
+          items,
+          multiplier: m,
+          answer: sum * m
+        };
+      } else if (type === "subtraction_first") {
+        p = {
+          id: Date.now(),
+          type,
+          title: "自訂：先減再乘",
+          text: `每組有 ${items[0].count}${items[0].icon}，拿掉 ${items[1].count}${items[1].icon}，共有 ${m} 組，總共有多少？`,
+          items: [items[0], items[1]],
+          multiplier: m
+        };
+      } else if (type === "difference_pair") {
+        p = {
+          id: Date.now(),
+          type,
+          title: "自訂：比較差",
+          text: `每組有 ${items[0].count}${items[0].icon} 和 ${items[1].count}${items[1].icon}，共有 ${m} 組，兩者總差是多少？`,
+          items: [items[0], items[1]],
+          multiplier: m
+        };
+      } else if (type === "group_addition") {
+        p = {
+          id: Date.now(),
+          type,
+          title: "自訂：群組增加",
+          text: `每組 ${items[0].count}${items[0].icon}，原本 ${m} 組，再加 ${ex} 組，總共有多少？`,
+          items: [items[0]],
+          baseGroups: m,
+          extraGroups: ex
+        };
+      } else {
+        p = {
+          id: Date.now(),
+          type,
+          title: "自訂：群組減少",
+          text: `每組 ${items[0].count}${items[0].icon}，原本 ${m} 組，減少 ${ex} 組，總共有多少？`,
+          items: [items[0]],
+          baseGroups: m,
+          minusGroups: ex
+        };
+      }
+
+      closeCustom();
+      selectProblem(p);
+    }
+
+    $("btnStep1").onclick = doStep1;
+    $("btnStep2").onclick = doStep2;
+    $("btnReset").onclick = resetCurrent;
+
+    $("overlay").onclick = closeCustom;
+    $("btnCancelCustom").onclick = closeCustom;
+    $("btnAddRow").onclick = () => { addBuilderRow("🍎", 1); previewCustom(); };
+    $("customType").addEventListener("change", () => { syncCustomUI(); previewCustom(); });
+    $("multiplier").addEventListener("input", previewCustom);
+    $("extraVal").addEventListener("input", previewCustom);
+    $("btnApplyCustom").onclick = applyCustom;
+
+    buildSidebar();
+    selectProblem(PROBLEMS[0]);
+  </script>
+</body>
+</html>
+
+

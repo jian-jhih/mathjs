@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>乘法應用題視覺練習</title>
+  <style>
+    :root {
+      --bg: #f7fbff;
+      --card: #ffffff;
+      --ink: #1f2937;
+      --muted: #64748b;
+      --line: #d6e0ea;
+      --primary: #0f766e;
+      --accent: #ea580c;
+      --ok: #15803d;
+      --bad: #b91c1c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      color: var(--ink);
+      background:
+        var(--bg);
+    }
+    header {
+      color: #fff;
+      text-align: center;
+      padding: 16px;
+    }
+    h1 { margin: 0; font-size: 1.5rem; }
+    .wrap {
+      max-width: 1200px;
+      margin: 14px auto;
+      padding: 0 12px 12px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 12px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    }
+    .side { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .mode-btn {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      color: #0f172a;
+      text-align: left;
+      padding: 9px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .mode-btn:hover { background: #f1f5f9; }
+    .mode-btn.active {
+      border: 2px solid var(--primary);
+      background: #0f766e;
+      color: #ffffff;
+    }
+    .note { color: var(--muted); font-size: 0.85rem; line-height: 1.4; }
+    .main { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .question {
+      border-left: 6px solid var(--accent);
+      background: #fff7ed;
+      border-radius: 10px;
+      padding: 11px;
+      line-height: 1.7;
+      min-height: 64px;
+      font-size: 1.02rem;
+    }
+    .formula {
+      font-family: Consolas, "Courier New", monospace;
+      background: #111827;
+      color: #e5e7eb;
+      border-radius: 10px;
+      padding: 10px;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+    .tag {
+      display: inline-block;
+      font-size: 0.82rem;
+      border-radius: 999px;
+      padding: 3px 9px;
+      margin-right: 6px;
+      background: #e2e8f0;
+      color: #334155;
+    }
+    .viz {
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      background: #f8fafc;
+      padding: 10px;
+      min-height: 260px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-content: flex-start;
+    }
+    .box {
+      border: 2px solid var(--primary);
+      border-radius: 10px;
+      background: #fff;
+      padding: 6px;
+      min-width: 110px;
+      min-height: 72px;
+    }
+    .box .t { font-size: 0.78rem; color: var(--muted); margin-bottom: 3px; }
+    .icons { display: flex; flex-wrap: wrap; gap: 2px; }
+    .icon { font-size: 20px; line-height: 1; width: 22px; text-align: center; }
+    .line-wrap { width: 100%; padding: 8px 6px; }
+    .line {
+      position: relative;
+      height: 14px;
+      background: #cbd5e1;
+      border-radius: 999px;
+      margin: 10px 0 6px;
+    }
+    .seg {
+      position: absolute;
+      top: 0;
+      height: 14px;
+      background: #0ea5e9;
+      border-radius: 999px;
+    }
+    .line-label { font-size: 0.9rem; color: #0f172a; }
+    .control, .custom {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: end;
+    }
+    label { font-size: 0.84rem; color: var(--muted); }
+    input, select {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 7px;
+      font-size: 0.95rem;
+      width: 100%;
+    }
+    .f { width: 120px; }
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 9px 14px;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .b1 { background: #0f766e; }
+    .b2 { background: #ea580c; }
+    .b3 { background: #475569; }
+    .result { min-height: 24px; font-weight: 700; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .hint { color: var(--muted); font-size: 0.92rem; min-height: 24px; }
+    @media (max-width: 900px) {
+      .wrap { grid-template-columns: 1fr; }
+      .formula { font-size: 1.05rem; }
+      .f { width: 100px; }
+    }
+  </style>
+<style id="math-flat-theme">
+:root{--paper:#F7F3E8;--ink:#24303A;--action:#2F5D7E;--value:#C58A2B;--correct:#557A5A;--error:#B7523E;--rule:#C9C1B2}
+body{background:var(--paper)!important;color:var(--ink)!important}button,input,select,textarea{border:2px solid var(--rule)!important}button:hover{background:var(--action)!important;color:#fff!important}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--value)!important;outline-offset:2px!important}
+</style></head>
+<body>
+  <header>
+    <h1>乘法應用題視覺練習器</h1>
+  </header>
+
+  <div class="wrap">
+    <aside class="panel side">
+      <button class="mode-btn active" data-mode="container">容器與分組</button>
+      <button class="mode-btn" data-mode="price">單價與省錢</button>
+      <button class="mode-btn" data-mode="array">排列與陣列</button>
+      <button class="mode-btn" data-mode="twostep">兩步驟混合</button>
+      <button class="mode-btn" data-mode="line">線段題</button>
+      <div class="note">題目會隨機出，答對會給鼓勵語。可在下方自訂「被乘數、乘數」建立題目。</div>
+    </aside>
+
+    <section class="panel main">
+      <div>
+        <span id="tagMode" class="tag">容器</span>
+        <span id="tagType" class="tag">等組</span>
+      </div>
+      <div id="question" class="question"></div>
+      <div id="formula" class="formula"></div>
+      <div id="viz" class="viz"></div>
+
+      <div class="control">
+        <button id="check" class="b1">檢查答案</button>
+        <button id="next" class="b2">新題目</button>
+        <button id="showHint" class="b3">提示</button>
+        <button id="showAnswer" class="b3">顯示答案</button>
+      </div>
+      <div class="custom" style="margin-top:2px;">
+        <div class="f"><label>第1段算式<input id="s1Expr" type="text" placeholder="例如 5×3" /></label></div>
+        <div class="f"><label>第1段結果<input id="s1Val" type="number" /></label></div>
+        <div class="f"><label>第2段算式<input id="s2Expr" type="text" placeholder="例如 15+2（純乘法可填 21）" /></label></div>
+        <div class="f"><label>第2段結果<input id="s2Val" type="number" /></label></div>
+        <button id="nextBottom" class="b2">下一題</button>
+      </div>
+      <div id="result" class="result"></div>
+      <div id="hint" class="hint"></div>
+
+      <hr style="border:none;border-top:1px solid var(--line);width:100%;">
+
+      <div class="custom">
+        <div class="f"><label>被乘數（每組）<input id="cMul" type="number" min="0" max="30" value="5" /></label></div>
+        <div class="f"><label>乘數（組數）<input id="cTimes" type="number" min="1" max="20" value="4" /></label></div>
+        <div class="f"><label>修正值（可為負）<input id="cFix" type="number" min="-20" max="20" value="0" /></label></div>
+        <select id="cType" class="f">
+          <option value="plain">純乘法</option>
+          <option value="fill">差幾個裝滿</option>
+          <option value="extra">多出幾個</option>
+          <option value="save">特價省多少</option>
+          <option value="line">線段加減</option>
+        </select>
+        <button id="buildCustom" class="b1">建立自訂題</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const encouragement = [
+      "太棒了！你抓到乘數和被乘數了！",
+      "答對了，今天的數感很穩！",
+      "很厲害，列式和計算都正確！",
+      "你做到了，再挑戰下一題！",
+      "超棒，這題完全正確！"
+    ];
+
+    const iconPool = ["🍎","🍐","🍊","🍇","⭐","📘","✏️","🍪"];
+
+    let mode = "container";
+    let current = null;
+
+    const $ = (id) => document.getElementById(id);
+
+    function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function pick(arr) { return arr[rand(0, arr.length - 1)]; }
+
+    function makeContainerQuestion() {
+      const a = rand(2, 8);
+      const n = rand(2, 7);
+      const kind = pick(["plain", "fill", "extra"]);
+      const item = pick(iconPool);
+
+      if (kind === "fill") {
+        const miss = rand(1, Math.min(4, a));
+        return {
+          mode: "container", type: "差幾個裝滿", a, n, miss, item,
+          text: `每盒可裝 ${a} 個${item}，目前先裝滿 ${n - 1} 盒，第 ${n} 盒還差 ${miss} 個就會滿。現在一共有幾個${item}？`,
+          formula: `${a} × ${n} - ${miss}`,
+          answer: a * n - miss,
+          hint: `先算滿 ${n} 盒共有多少：${a} × ${n}，再減掉還差的 ${miss}。`
+        };
+      }
+      if (kind === "extra") {
+        const extra = rand(1, 5);
+        return {
+          mode: "container", type: "多出幾個", a, n, extra, item,
+          text: `每盒裝 ${a} 個${item}，先裝滿 ${n} 盒後，還多出 ${extra} 個。總共有幾個${item}？`,
+          formula: `${a} × ${n} + ${extra}`,
+          answer: a * n + extra,
+          hint: `先算 ${n} 盒共有多少，再加上多出的 ${extra}。`
+        };
+      }
+      return {
+        mode: "container", type: "等組", a, n, item,
+        text: `每盒有 ${a} 個${item}，共有 ${n} 盒，總共有幾個${item}？`,
+        formula: `${a} × ${n}`,
+        answer: a * n,
+        hint: `被乘數是每盒 ${a}，乘數是 ${n} 盒。`
+      };
+    }
+
+    function makePriceQuestion() {
+      const qty = rand(2, 8);
+      const origin = rand(12, 45);
+      const sale = origin - rand(2, 8);
+      const kind = pick(["save", "total"]);
+      if (kind === "save") {
+        return {
+          mode: "price", type: "省下多少", a: origin - sale, n: qty,
+          text: `一個文具原價 ${origin} 元，特價 ${sale} 元。買 ${qty} 個一共省下多少元？`,
+          formula: `(${origin} - ${sale}) × ${qty}`,
+          answer: (origin - sale) * qty,
+          hint: `先算每個省多少，再乘上件數 ${qty}。`,
+          origin, sale, qty
+        };
+      }
+      return {
+        mode: "price", type: "特價總價", a: sale, n: qty,
+        text: `一個文具特價 ${sale} 元，買 ${qty} 個要多少元？`,
+        formula: `${sale} × ${qty}`,
+        answer: sale * qty,
+        hint: `每個特價 ${sale} 元，重複 ${qty} 次。`,
+        sale, qty
+      };
+    }
+
+    function makeArrayQuestion() {
+      const row = rand(2, 6);
+      const col = rand(3, 8);
+      const less = rand(1, 3);
+      const kind = pick(["plain", "less"]);
+      if (kind === "less") {
+        return {
+          mode: "array", type: "某排較少", a: col, n: row,
+          text: `一共有 ${row} 排，每排本來 ${col} 個字，其中一排少了 ${less} 個字。實際共有幾個字？`,
+          formula: `${col} × ${row} - ${less}`,
+          answer: col * row - less,
+          hint: `先算每排都滿時，再扣掉少的 ${less} 個。`,
+          row, col, less
+        };
+      }
+      return {
+        mode: "array", type: "陣列", a: col, n: row,
+        text: `有 ${row} 排，每排 ${col} 人，總共有幾人？`,
+        formula: `${col} × ${row}`,
+        answer: col * row,
+        hint: `一排 ${col} 人，重複 ${row} 排。`,
+        row, col
+      };
+    }
+
+    function makeTwoStepQuestion() {
+      const a = rand(3, 9);
+      const n = rand(2, 7);
+      const delta = rand(2, 8);
+      const kind = pick(["add", "sub"]);
+      if (kind === "add") {
+        return {
+          mode: "twostep", type: "先乘後加", a, n,
+          text: `有 ${n} 袋糖果，每袋 ${a} 顆，又多送 ${delta} 顆，總共有幾顆？`,
+          formula: `${a} × ${n} + ${delta}`,
+          answer: a * n + delta,
+          hint: `先算袋子裡的，再加送的。`,
+          delta
+        };
+      }
+      return {
+        mode: "twostep", type: "先乘後減", a, n,
+        text: `${n} 排每排 ${a} 人，後來有 ${delta} 人請假，剩下幾人？`,
+        formula: `${a} × ${n} - ${delta}`,
+        answer: a * n - delta,
+        hint: `先算原本總數，再減請假人數。`,
+        delta
+      };
+    }
+
+    function makeLineQuestion() {
+      const unit = rand(3, 8);
+      const seg = rand(3, 6);
+      const diff = rand(2, 6);
+      const kind = pick(["plus", "minus"]);
+      if (kind === "plus") {
+        return {
+          mode: "line", type: "線段加法", a: unit, n: seg,
+          text: `一段長度是 ${unit} 公分，一共有 ${seg} 段一樣長，另外再接上 ${diff} 公分，總長多少公分？`,
+          formula: `${unit} × ${seg} + ${diff}`,
+          answer: unit * seg + diff,
+          hint: `先算相同線段總長，再加上額外的。`,
+          diff
+        };
+      }
+      return {
+        mode: "line", type: "線段減法", a: unit, n: seg,
+        text: `一段長度是 ${unit} 公分，一共有 ${seg} 段，剪掉 ${diff} 公分後還有多少公分？`,
+        formula: `${unit} × ${seg} - ${diff}`,
+        answer: unit * seg - diff,
+        hint: `先算總長，再減掉剪掉的。`,
+        diff
+      };
+    }
+
+    function makeSteps(baseExpr, baseVal, adjustExpr, answerVal) {
+      const baseRaw = String(baseExpr).replace(/\s+/g, "");
+      const parts = baseRaw.split("×");
+      const step1List = [baseExpr];
+      if (parts.length === 2) {
+        step1List.push(`${parts[1]}×${parts[0]}`);
+      }
+      return {
+        step1Expr: step1List,
+        step1Val: baseVal,
+        step2Expr: [adjustExpr],
+        step2Val: answerVal
+      };
+    }
+
+    function generateQuestion() {
+      if (mode === "container") return makeContainerQuestion();
+      if (mode === "price") return makePriceQuestion();
+      if (mode === "array") return makeArrayQuestion();
+      if (mode === "twostep") return makeTwoStepQuestion();
+      return makeLineQuestion();
+    }
+
+    function renderVisual(q) {
+      const viz = $("viz");
+      viz.innerHTML = "";
+      if (q.mode === "line") {
+        const total = q.answer;
+        const base = q.a * q.n;
+        const lineWrap = document.createElement("div");
+        lineWrap.className = "line-wrap";
+
+        const l1 = document.createElement("div");
+        l1.className = "line-label";
+        l1.textContent = `每段 ${q.a} 公分，共 ${q.n} 段，先得到 ${base} 公分`;
+
+        const bar = document.createElement("div");
+        bar.className = "line";
+        const segBase = document.createElement("div");
+        segBase.className = "seg";
+        segBase.style.left = "0%";
+        segBase.style.width = `${Math.max(10, Math.round((base / Math.max(base, total)) * 100))}%`;
+        bar.appendChild(segBase);
+
+        const l2 = document.createElement("div");
+        l2.className = "line-label";
+        l2.textContent = `最後總長：${total} 公分`;
+
+        lineWrap.append(l1, bar, l2);
+        viz.appendChild(lineWrap);
+        return;
+      }
+
+      const boxes = Math.min(q.n || q.qty || 6, 8);
+      const per = q.a || q.sale || 1;
+      for (let i = 0; i < boxes; i++) {
+        const box = document.createElement("div");
+        box.className = "box";
+        box.innerHTML = `<div class="t">第 ${i + 1} 組</div>`;
+        const icons = document.createElement("div");
+        icons.className = "icons";
+        const show = Math.min(per, 12);
+        for (let k = 0; k < show; k++) {
+          const s = document.createElement("span");
+          s.className = "icon";
+          s.textContent = q.mode === "price" ? "💰" : "🟦";
+          icons.appendChild(s);
+        }
+        box.appendChild(icons);
+        viz.appendChild(box);
+      }
+    }
+
+    function render() {
+      const baseVal = current.a * current.n;
+      if (!current.step1Expr) {
+        const baseExpr = `${current.a}×${current.n}`;
+        const baseNorm = normalizeExpr(baseExpr);
+        const formulaNorm = normalizeExpr(current.formula);
+        const isPlainMultiply = baseNorm === formulaNorm;
+        const step2Expr = isPlainMultiply ? `${baseVal}` : current.formula;
+        const stepData = makeSteps(baseExpr, baseVal, step2Expr, current.answer);
+        current.step1Expr = stepData.step1Expr;
+        current.step1Val = stepData.step1Val;
+        current.step2Expr = stepData.step2Expr;
+        current.step2Val = stepData.step2Val;
+      }
+      $("question").textContent = current.text;
+      $("formula").textContent = `兩段式作答：第1段先算乘法（被乘數 × 乘數），第2段再做加減調整`;
+      $("tagMode").textContent = {
+        container: "容器",
+        price: "單價",
+        array: "排列",
+        twostep: "兩步驟",
+        line: "線段"
+      }[current.mode];
+      $("tagType").textContent = current.type;
+      $("s1Expr").value = "";
+      $("s1Val").value = "";
+      $("s2Expr").value = "";
+      $("s2Val").value = "";
+      $("result").textContent = "";
+      $("hint").textContent = "";
+      renderVisual(current);
+    }
+
+    function normalizeExpr(s) {
+      const raw = String(s || "")
+        .replace(/\s+/g, "")
+        .replace(/[xX＊]/g, "×")
+        .replace(/\*/g, "×");
+      const noEq = raw.includes("=") ? raw.split("=")[0] : raw;
+      return noEq;
+    }
+
+    function matchExpr(inputExpr, acceptedList) {
+      const n = normalizeExpr(inputExpr);
+      return acceptedList.some((x) => normalizeExpr(x) === n);
+    }
+
+    function evalSimpleExpr(expr) {
+      const n = normalizeExpr(expr);
+      if (/^\d+$/.test(n)) return Number(n);
+      const m = n.match(/^(\d+)([×+\-])(\d+)$/);
+      if (!m) return NaN;
+      const a = Number(m[1]);
+      const op = m[2];
+      const b = Number(m[3]);
+      if (op === "×") return a * b;
+      if (op === "+") return a + b;
+      return a - b;
+    }
+
+    function checkFlexibleTwoStep(s1Expr, s1Val, s2Expr, s2Val) {
+      const v1 = evalSimpleExpr(s1Expr);
+      const v2 = evalSimpleExpr(s2Expr);
+      if (!Number.isFinite(v1) || !Number.isFinite(v2)) return false;
+      if (v1 !== s1Val || v2 !== s2Val) return false;
+      if (s2Val !== current.answer) return false;
+
+      if (current.mode === "container" && current.type === "差幾個裝滿") {
+        const full = current.a * current.n;
+        const miss = current.miss;
+        const pre = current.a * (current.n - 1);
+        const addNeed = current.a - miss;
+        const okA = (s1Val === full) && (evalSimpleExpr(`${s1Val}-${miss}`) === s2Val);
+        const okB = (s1Val === pre) && (evalSimpleExpr(`${s1Val}+${addNeed}`) === s2Val);
+        return okA || okB;
+      }
+
+      return true;
+    }
+
+    function checkAnswer() {
+      const s1Expr = $("s1Expr").value;
+      const s2Expr = $("s2Expr").value;
+      const s1Val = Number($("s1Val").value);
+      const s2Val = Number($("s2Val").value);
+
+      if (!s1Expr || !s2Expr || !Number.isFinite(s1Val) || !Number.isFinite(s2Val)) {
+        $("result").className = "result bad";
+        $("result").textContent = "請先把兩段式算式與結果都填完。";
+        return;
+      }
+
+      const ok1Expr = matchExpr(s1Expr, current.step1Expr || []);
+      const ok2Expr = matchExpr(s2Expr, current.step2Expr || []);
+      const ok1Val = s1Val === current.step1Val;
+      const ok2Val = s2Val === current.step2Val;
+      const okFlexible = checkFlexibleTwoStep(s1Expr, s1Val, s2Expr, s2Val);
+
+      if ((ok1Expr && ok2Expr && ok1Val && ok2Val) || okFlexible) {
+        $("result").className = "result ok";
+        $("result").textContent = `${pick(encouragement)} 兩段式都答對了！`;
+      } else {
+        $("result").className = "result bad";
+        $("result").textContent = "再檢查一次：先看第1段乘法，再看第2段加減。";
+      }
+    }
+
+    function showHint() {
+      $("hint").textContent = current.hint;
+    }
+
+    function showAnswer() {
+      $("hint").textContent = `第1段：${current.step1Expr[0]} = ${current.step1Val}；第2段：${current.step2Expr[0]} = ${current.step2Val}`;
+    }
+
+    function setMode(m) {
+      mode = m;
+      document.querySelectorAll(".mode-btn").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.mode === m);
+      });
+      current = generateQuestion();
+      render();
+    }
+
+    function buildCustom() {
+      const a = Math.floor(Number($("cMul").value));
+      const n = Math.floor(Number($("cTimes").value));
+      const fix = Math.floor(Number($("cFix").value));
+      const t = $("cType").value;
+
+      if (!Number.isFinite(a) || !Number.isFinite(n) || n < 1 || a < 0) {
+        $("result").className = "result bad";
+        $("result").textContent = "自訂數字不正確，請檢查。";
+        return;
+      }
+
+      if (t === "plain") {
+        current = { mode: "container", type: "自訂純乘法", a, n, text: `每組 ${a} 個，共 ${n} 組，總共有幾個？`, formula: `${a} × ${n}`, answer: a * n, hint: "被乘數是每組，乘數是組數。" };
+      } else if (t === "fill") {
+        current = { mode: "container", type: "自訂差幾個", a, n, text: `每組最多 ${a} 個，共 ${n} 組，還差 ${Math.abs(fix)} 個才全滿。現在共有幾個？`, formula: `${a} × ${n} - ${Math.abs(fix)}`, answer: a * n - Math.abs(fix), hint: "先算全滿，再減差額。" };
+      } else if (t === "extra") {
+        current = { mode: "container", type: "自訂多出", a, n, text: `每組 ${a} 個，共 ${n} 組，另外多出 ${Math.abs(fix)} 個，總共有幾個？`, formula: `${a} × ${n} + ${Math.abs(fix)}`, answer: a * n + Math.abs(fix), hint: "先算整組，再加多出的。" };
+      } else if (t === "save") {
+        const saveEach = Math.max(1, a);
+        current = { mode: "price", type: "自訂省下", a: saveEach, n, text: `每個商品特價可省 ${saveEach} 元，買 ${n} 個共省多少元？`, formula: `${saveEach} × ${n}`, answer: saveEach * n, hint: "每件省多少乘件數。" };
+      } else {
+        const op = fix >= 0 ? "+" : "-";
+        const delta = Math.abs(fix);
+        current = { mode: "line", type: "自訂線段", a, n, text: `每段 ${a} 公分，共 ${n} 段，再 ${op === "+" ? "加上" : "減去"} ${delta} 公分，結果多少公分？`, formula: `${a} × ${n} ${op} ${delta}`, answer: op === "+" ? a * n + delta : a * n - delta, hint: "先算相同段長總和，再做加減。", diff: delta };
+      }
+      render();
+    }
+
+    $("check").addEventListener("click", checkAnswer);
+    $("next").addEventListener("click", () => { current = generateQuestion(); render(); });
+    $("nextBottom").addEventListener("click", () => { current = generateQuestion(); render(); });
+    $("showHint").addEventListener("click", showHint);
+    $("showAnswer").addEventListener("click", showAnswer);
+    $("buildCustom").addEventListener("click", buildCustom);
+
+    document.querySelectorAll(".mode-btn").forEach((btn) => {
+      btn.addEventListener("click", () => setMode(btn.dataset.mode));
+    });
+
+    current = generateQuestion();
+    render();
+  </script>
+</body>
+</html>
+
+

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>數線尺規減法教學工具</title>
+<style>
+:root {
+    --bg: #0f172a; --panel: #1e293b; --border: #334155; --text: #f1f5f9;
+    --m-color: #38bdf8; --s-color: #f97316; --ans-color: #4ade80;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+.controls {
+    background: var(--panel); padding: 12px 20px;
+    display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+    border-bottom: 1px solid var(--border);
+}
+.ctrl-group { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.ctrl-group label { color: #94a3b8; }
+input[type="number"] {
+    width: 72px; padding: 6px 8px; border-radius: 6px;
+    border: 1px solid var(--border); background: #0f172a; color: var(--text);
+    font-size: 16px; font-weight: bold; text-align: center;
+}
+select { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: #0f172a; color: var(--text); font-size: 14px; }
+button { padding: 7px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; font-weight: bold; }
+.btn-primary { background: #6366f1; color: white; }
+.btn-next { background: #10b981; color: white; }
+.btn-next:disabled { opacity: 0.4; cursor: not-allowed; }
+
+#msg { padding: 9px 20px; background: #020617; font-size: 15px; font-weight: 600; min-height: 40px; border-bottom: 1px solid var(--border); }
+
+#board { flex: 1; padding: 30px 40px; display: flex; flex-direction: column; gap: 0; overflow: auto; }
+
+/* ── 數線場景 ── */
+.ruler-scene { display: flex; flex-direction: column; gap: 0; }
+
+/* 每一行：標籤 + 尺條 + 數值 */
+.ruler-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; position: relative; min-height: 44px; }
+.row-label { width: 56px; font-size: 12px; font-weight: 700; color: #64748b; text-align: right; flex-shrink: 0; }
+.bar-wrap { flex: 1; position: relative; height: 36px; }
+
+/* 基準尺 (灰色刻度) */
+.base-ruler {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    height: 2px; background: var(--border); width: 100%;
+}
+
+/* 實際長條 */
+.ruler-bar {
+    position: absolute; top: 4px; height: 28px; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.9);
+    overflow: hidden; transition: width 0.5s ease, left 0.5s ease, opacity 0.4s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    cursor: default;
+}
+
+/* 刻度線 */
+.tick { position: absolute; top: 0; width: 1px; background: rgba(255,255,255,0.2); height: 36px; pointer-events: none; }
+.tick.major { background: rgba(255,255,255,0.5); }
+.tick-label { position: absolute; top: 38px; font-size: 10px; color: #64748b; transform: translateX(-50%); white-space: nowrap; }
+
+/* 數值標籤 */
+.bar-value { width: 56px; font-size: 14px; font-weight: 700; flex-shrink: 0; text-align: left; padding-left: 4px; }
+.val-m { color: var(--m-color); }
+.val-s { color: var(--s-color); }
+.val-ans { color: var(--ans-color); }
+
+/* 切割工具 (手動模式) */
+.cut-zone {
+    position: absolute; top: 0; height: 100%; cursor: col-resize;
+    border-left: 3px dashed rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.05);
+    transition: background 0.2s;
+}
+.cut-zone:hover { background: rgba(255,255,255,0.12); }
+
+/* 箭頭連線 (顯示答案對應) */
+.answer-bracket {
+    border-left: 2px solid var(--ans-color);
+    border-bottom: 2px solid var(--ans-color);
+    border-right: 2px solid var(--ans-color);
+    height: 12px; position: absolute; bottom: -16px;
+    border-radius: 0 0 3px 3px;
+    transition: left 0.5s, width 0.5s;
+}
+
+/* 說明文字 */
+.step-explain {
+    background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #c7d2fe;
+    margin-top: 14px; line-height: 1.6;
+}
+</style>
+<style id="math-flat-theme">
+:root{--paper:#F7F3E8;--ink:#24303A;--action:#2F5D7E;--value:#C58A2B;--correct:#557A5A;--error:#B7523E;--rule:#C9C1B2}
+body{background:var(--paper)!important;color:var(--ink)!important}button,input,select,textarea{border:2px solid var(--rule)!important}button:hover{background:var(--action)!important;color:#fff!important}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--value)!important;outline-offset:2px!important}
+</style></head>
+<body>
+
+<div class="controls">
+    <div class="ctrl-group"><label>被減數</label><input type="number" id="inp-min" value="312" min="1" max="9999"></div>
+    <div class="ctrl-group"><label>減數</label><input type="number" id="inp-sub" value="168" min="0" max="9999"></div>
+    <div class="ctrl-group">
+        <label>模式</label>
+        <select id="sel-mode">
+            <option value="auto">自動演示</option>
+            <option value="manual">手動教學</option>
+        </select>
+    </div>
+    <button class="btn-primary" id="btn-start">開始 / 重置</button>
+    <button class="btn-next" id="btn-next" style="display:none">下一步 ▶</button>
+</div>
+
+<div id="msg">請輸入題目並按「開始 / 重置」</div>
+<div id="board"></div>
+
+<script>
+const boardEl = document.getElementById('board');
+const msgEl   = document.getElementById('msg');
+const btnNext  = document.getElementById('btn-next');
+const inpMin   = document.getElementById('inp-min');
+const inpSub   = document.getElementById('inp-sub');
+const selMode  = document.getElementById('sel-mode');
+
+let state = { minuend: 0, subtrahend: 0, mode: 'auto', step: 0, busy: false };
+
+function showMsg(txt, err=false) { msgEl.textContent = txt; msgEl.style.color = err ? '#f87171' : '#f1f5f9'; }
+
+// ── 刻度生成 ──────────────────────────────────────
+function buildTicks(wrapEl, maxVal, pxPerUnit) {
+    // 根據數值大小決定刻度間距
+    let majorStep = 100, minorStep = 10;
+    if (maxVal <= 20)  { majorStep = 5;   minorStep = 1; }
+    else if (maxVal <= 100) { majorStep = 10; minorStep = 1; }
+    else if (maxVal <= 200) { majorStep = 50; minorStep = 10; }
+
+    for (let v = 0; v <= maxVal; v += minorStep) {
+        const isMajor = (v % majorStep === 0);
+        const x = v * pxPerUnit;
+        if (x > wrapEl.offsetWidth + 10) break;
+
+        const tick = document.createElement('div');
+        tick.className = 'tick' + (isMajor ? ' major' : '');
+        tick.style.left = x + 'px';
+        wrapEl.appendChild(tick);
+
+        if (isMajor) {
+            const lbl = document.createElement('div');
+            lbl.className = 'tick-label';
+            lbl.textContent = v;
+            lbl.style.left = x + 'px';
+            wrapEl.appendChild(lbl);
+        }
+    }
+}
+
+// ── 建立一條水平長條 ──────────────────────────────
+function makeBar(cls, leftPx, widthPx, label) {
+    const bar = document.createElement('div');
+    bar.className = 'ruler-bar ' + cls;
+    bar.style.left  = leftPx + 'px';
+    bar.style.width = Math.max(widthPx, 0) + 'px';
+    if (label && widthPx > 24) bar.textContent = label;
+    return bar;
+}
+
+// ── 建立一行 (標籤 + 尺條) ──────────────────────
+function makeRow(labelTxt, valueTxt, valClass) {
+    const row = document.createElement('div');
+    row.className = 'ruler-row';
+
+    const lbl = document.createElement('div');
+    lbl.className = 'row-label';
+    lbl.textContent = labelTxt;
+    row.appendChild(lbl);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'bar-wrap';
+    const base = document.createElement('div');
+    base.className = 'base-ruler';
+    wrap.appendChild(base);
+    row.appendChild(wrap);
+
+    const val = document.createElement('div');
+    val.className = 'bar-value ' + valClass;
+    val.textContent = valueTxt;
+    row.appendChild(val);
+
+    return { row, wrap, val };
+}
+
+// ── 主渲染 ──────────────────────────────────────
+function initGame() {
+    state.minuend    = parseInt(inpMin.value) || 0;
+    state.subtrahend = parseInt(inpSub.value) || 0;
+    state.mode       = selMode.value;
+    state.step       = 0;
+    state.busy       = false;
+
+    if (state.subtrahend > state.minuend) {
+        showMsg('減數不能大於被減數喔！', true); return;
+    }
+
+    btnNext.style.display = state.mode === 'auto' ? 'inline-block' : 'none';
+    btnNext.disabled = false;
+
+    render();
+}
+
+function render() {
+    boardEl.innerHTML = '';
+
+    const M  = state.minuend;
+    const S  = state.subtrahend;
+    const A  = M - S;
+    const mode = state.mode;
+
+    // 計算縮放：讓被減數佔可用寬度的 90%
+    const availW = boardEl.clientWidth - 140; // 56(label) + 12(gap) + 56(val) + margin
+    const pxPerUnit = Math.min(availW / M, 8); // 最多 8px per unit
+
+    const scene = document.createElement('div');
+    scene.className = 'ruler-scene';
+    boardEl.appendChild(scene);
+
+    // ── 1. 被減數行 ──
+    const { row: mRow, wrap: mWrap } = makeRow('被減數', M, 'val-m');
+    const mBar = makeBar('bar-minuend', 0, M * pxPerUnit, M);
+    mWrap.appendChild(mBar);
+    buildTicks(mWrap, M, pxPerUnit);
+    scene.appendChild(mRow);
+
+    if (mode === 'auto') {
+        // ── 自動模式：根據 step 顯示 ──
+        renderAutoSteps(scene, M, S, A, pxPerUnit);
+    } else {
+        // ── 手動模式：拖曳切割 ──
+        renderManual(scene, M, S, A, pxPerUnit);
+    }
+}
+
+// ── 自動模式步驟 ──────────────────────────────────
+function renderAutoSteps(scene, M, S, A, pxPerUnit) {
+    const step = state.step;
+
+    if (step === 0) {
+        showMsg(`題目：${M} − ${S} = ?　點擊「下一步」開始。`);
+        return;
+    }
+
+    // Step 1：顯示減數（疊在被減數右端）
+    if (step >= 1) {
+        const { row: sRow, wrap: sWrap } = makeRow('減數', S, 'val-s');
+        const sLeft = (M - S) * pxPerUnit;
+        const sBar = makeBar('bar-subtrahend', sLeft, S * pxPerUnit, S);
+        sWrap.appendChild(sBar);
+        scene.appendChild(sRow);
+
+        if (step === 1) {
+            showMsg(`在被減數尺的右端，標出要減去的長度 ${S}。`);
+        }
+    }
+
+    // Step 2：把減數滑走，剩下答案
+    if (step >= 2) {
+        const { row: ansRow, wrap: ansWrap, val: ansVal } = makeRow('剩餘', A, 'val-ans');
+        const ansBar = makeBar('bar-answer', 0, A * pxPerUnit, A);
+        ansWrap.appendChild(ansBar);
+        scene.appendChild(ansRow);
+
+        // 括弧提示答案範圍
+        const bracket = document.createElement('div');
+        bracket.className = 'answer-bracket';
+        bracket.style.left  = '0px';
+        bracket.style.width = (A * pxPerUnit) + 'px';
+        ansWrap.appendChild(bracket);
+
+        // 說明
+        const expl = document.createElement('div');
+        expl.className = 'step-explain';
+        expl.innerHTML = `
+            <strong style="color:var(--m-color)">${M}</strong>（整條尺）
+            − <strong style="color:var(--s-color)">${S}</strong>（從右端切除）
+            = <strong style="color:var(--ans-color)">${A}</strong>（剩下的長度）<br>
+            位值拆解：${M} = ${decomposeStr(M)}，去除右端 ${S} = ${decomposeStr(S)}，餘 ${A} = ${decomposeStr(A)}`;
+        scene.appendChild(expl);
+
+        showMsg(`✅ ${M} − ${S} = ${A}`);
+        btnNext.disabled = true;
+    }
+}
+
+// ── 手動模式 ──────────────────────────────────────
+function renderManual(scene, M, S, A, pxPerUnit) {
+    // 在被減數上疊一個可拖動的「切割點」
+    const { row: sRow, wrap: sWrap } = makeRow('減數', '?', 'val-s');
+
+    // 初始顯示減數尺（從右端，透明度低）
+    const sBar = makeBar('bar-subtrahend', (M - S) * pxPerUnit, S * pxPerUnit, S);
+    sBar.style.opacity = '0.5';
+    sBar.title = '這是減數的長度';
+    sWrap.appendChild(sBar);
+
+    // 「切割點」可拖動
+    let cutValue = M; // 從右往左拖
+    const cutLine = document.createElement('div');
+    cutLine.className = 'cut-zone';
+    cutLine.style.right = '0px';
+    cutLine.style.width = '12px';
+    cutLine.style.left = (M * pxPerUnit - 6) + 'px';
+    cutLine.title = '拖曳我來標記要減去的長度';
+    sWrap.appendChild(cutLine);
+
+    const sValEl = sRow.querySelector('.bar-value');
+
+    // 拖曳邏輯
+    let dragging = false, startX = 0, startCut = M;
+
+    cutLine.addEventListener('mousedown', e => {
+        dragging = true; startX = e.clientX; startCut = cutValue;
+        document.body.style.cursor = 'col-resize';
+        e.preventDefault();
+    });
+    document.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        const dx = e.clientX - startX;
+        const delta = Math.round(dx / pxPerUnit);
+        cutValue = Math.max(S, Math.min(M, startCut + delta));
+
+        const cutPx = cutValue * pxPerUnit;
+        cutLine.style.left = (cutPx - 6) + 'px';
+        sBar.style.left  = (cutValue - S) * pxPerUnit + 'px';
+        sBar.style.width = S * pxPerUnit + 'px';
+
+        const rem = cutValue - S;
+        sValEl.textContent = `切點: ${cutValue}`;
+        showMsg(`被減數 ${M}，切割點在 ${cutValue}，從此往右減去 ${S}，剩餘 ${rem}`);
+
+        // 更新答案行
+        let ansBar = sWrap.parentElement.parentElement.querySelector('.bar-answer');
+        if (!ansBar) {
+            const { row: ansRow, wrap: ansWrap } = makeRow('剩餘', rem, 'val-ans');
+            ansBar = makeBar('bar-answer', 0, rem * pxPerUnit, rem);
+            ansBar.classList.add('dyn-ans');
+            ansWrap.appendChild(ansBar);
+            scene.appendChild(ansRow);
+        } else {
+            ansBar.style.width = rem * pxPerUnit + 'px';
+            ansBar.textContent = rem > 20 ? rem : '';
+        }
+    });
+    document.addEventListener('mouseup', () => {
+        if (!dragging) return;
+        dragging = false;
+        document.body.style.cursor = '';
+        if (cutValue - S === A) {
+            showMsg(`✅ 正確！${M} − ${S} = ${A}`);
+        } else {
+            showMsg(`目前切點在 ${cutValue}，剩餘 ${cutValue - S}。減數是 ${S}，試試看讓切點在 ${M-S+S}...`);
+        }
+    });
+
+    scene.appendChild(sRow);
+
+    const hint = document.createElement('div');
+    hint.className = 'step-explain';
+    hint.innerHTML = `<strong>手動教學：</strong>拖曳右端的 <span style="color:#fbbf24">虛線切割點</span>，向左移動到 <strong>${M - S}</strong> 的位置，就能切出長度 ${S}，讓學生看到剩下 ${A} 的部分。`;
+    scene.appendChild(hint);
+
+    showMsg(`手動模式：拖曳虛線切割點，將尺切成「減去 ${S}」和「剩餘」兩段。`);
+}
+
+// ── 輔助：位值分解字串 ──
+function decomposeStr(n) {
+    if (n === 0) return '0';
+    const parts = [];
+    const h = Math.floor(n / 100);
+    const t = Math.floor((n % 100) / 10);
+    const o = n % 10;
+    if (h) parts.push(`${h}×100`);
+    if (t) parts.push(`${t}×10`);
+    if (o) parts.push(`${o}`);
+    return parts.join(' + ');
+}
+
+// ── 自動模式下一步 ──
+function handleNextStep() {
+    if (state.mode !== 'auto' || state.busy) return;
+    state.step++;
+    render();
+}
+
+document.getElementById('btn-start').addEventListener('click', initGame);
+btnNext.addEventListener('click', handleNextStep);
+[inpMin, inpSub].forEach(el => el.addEventListener('keypress', e => e.key === 'Enter' && initGame()));
+
+initGame();
+</script>
+</body>
+</html>
+
+
